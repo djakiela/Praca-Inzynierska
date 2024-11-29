@@ -38,6 +38,7 @@
   <div v-if="!reservationStatus[index]">
     <label>Liczba miejsc do rezerwacji:</label>
     <input
+    class="seats-input"
       type="number"
       v-model.number="reservationSeats[index]"
       :max="ride.seats"
@@ -396,102 +397,150 @@ export default {
 
 
 <style scoped>
-.map-container {
-  width: 100%;
-  height: 400px;
-  margin-top: 20px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  display: block; /* Domyślnie ukryj kontener */
-}
-
-
-
+/* Page styling */
 .page {
   background: linear-gradient(150deg, #05445e, #189ab4, #d4f1f4);
-  padding-top: 30px;
-  padding-bottom: 30px;
-}
-
-.ride-list {
+  padding: 30px 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   font-family: Arial, Helvetica, sans-serif;
-  padding: 20px;
-  max-width: 800px;
-  margin: 0 auto;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Ride list container */
+.ride-list {
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  width: 80%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.seats-input {
+  width: 30px;
+}
+
+/* Title */
 h1 {
   text-align: center;
   color: #333;
+  font-size: 2rem;
+  margin-bottom: 20px;
 }
 
-.loading {
-  text-align: center;
-  color: #007bff;
-}
-
-.error {
-  text-align: center;
-  color: red;
-}
-
-.no-rides {
-  text-align: center;
-  color: #555;
-}
-
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-
+/* Ride item */
 .ride-item {
   background-color: white;
   border: 1px solid #ddd;
-  padding: 15px;
-  margin-bottom: 10px;
-  border-radius: 5px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.ride-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
 }
 
 .ride-item h2 {
-  margin: 0 0 10px;
-  color: #007bff;
+  font-size: 1.5rem;
+  color: #05445e;
+  margin-bottom: 10px;
 }
 
 .ride-item p {
+  font-size: 1rem;
+  color: #54626f;
   margin: 5px 0;
-  color: #555;
 }
 
 .ride-item strong {
   color: #333;
 }
 
+/* Form section */
+.inputs label {
+  font-weight: 500;
+  color: #54626f;
+}
+
+.inputs input {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  margin-top: 5px;
+  transition: border-color 0.2s ease;
+}
+
+.inputs input:focus {
+  border-color: #3b444b;
+}
+
+.error {
+  color: red;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+/* Buttons */
 button {
-  margin-top: 10px;
-  padding: 10px;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
   border: none;
-  background-color: #189ab4;
-  color: white;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 button:hover {
-  background-color: #007bff;
+  transform: translateY(-3px);
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+button:nth-of-type(1) {
+  background-color: #189ab4;
+  color: white;
+}
+
+button:nth-of-type(1):hover {
+  background-color: #00b3b8;
+}
+
+button:nth-of-type(2) {
+  background-color: #05445e;
+  color: white;
+}
+
+button:nth-of-type(2):hover {
+  background-color: #006b7f;
+}
+
+/* Details section */
 .details {
-  margin-top: 10px;
-  padding: 10px;
+  margin-top: 15px;
+  padding: 15px;
   border-top: 1px solid #ddd;
-  color: #444;
+  background-color: #f9f9f9;
+  border-radius: 8px;
 }
 
+.details p {
+  font-size: 0.95rem;
+  color: #3b444b;
+}
+
+/* Pagination */
 .pagination {
   display: flex;
   justify-content: center;
@@ -502,17 +551,17 @@ button:hover {
 .pagination button {
   background-color: white;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 8px;
   margin: 0 5px;
   padding: 5px 10px;
-  cursor: pointer;
   font-size: 1rem;
-  color: #333;
-  transition: background-color 0.3s, transform 0.2s;
+  color: #54626f;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .pagination button:hover {
-  background-color: #007bff;
+  background-color: #189ab4;
   color: white;
   transform: translateY(-2px);
 }
@@ -523,9 +572,18 @@ button:hover {
 }
 
 .pagination button.active {
-  background-color: #007bff;
+  background-color: #05445e;
   color: white;
   font-weight: bold;
-  cursor: default;
+}
+
+/* Map container */
+.map-container {
+  width: 100%;
+  height: 400px;
+  margin-top: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 </style>
