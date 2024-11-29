@@ -1,66 +1,105 @@
 <template>
-  <div class="ride-list">
-    <h1>Lista przejazdów</h1>
-    <div v-if="loading" class="loading">Ładowanie...</div>
-    <div v-if="error" class="error">{{ error }}</div>
-    <div v-if="rides.length === 0 && !loading" class="no-rides">
-      Brak przejazdów do wyświetlenia.
-    </div>
+  <div class="page">
+    <div class="ride-list">
+      <h1>Lista przejazdów</h1>
 
-    <ul v-if="rides.length > 0">
-      <li v-for="(ride, index) in rides" :key="ride.id" class="ride-item">
-        <h2>Przejazd: {{ ride.departure }} → {{ ride.destination }}</h2>
-        <p>
-          <strong>Dodano przez:</strong>
-          {{ userNames[ride.userId] || "Nieznany użytkownik" }}
-        </p>
-        <p><strong>Data:</strong> {{ formatDate(ride.dateTime) }}</p>
-        <p><strong>Miejsca:</strong> {{ ride.seats }}</p>
-
-        <!-- Formularz rezerwacji -->
-        <div v-if="!reservationStatus[index]">
-          <label>Liczba miejsc do rezerwacji:</label>
-          <input
-            type="number"
-            v-model.number="reservationSeats[index]"
-            :max="ride.seats"
-            :min="1"
-            @input="validateSeats(index, ride.seats)"
-          />
-          <p v-if="validationErrors[index]" class="error">
-            {{ validationErrors[index] }}
-          </p>
-        </div>
-
-        <!-- Przyciski -->
+      <!-- Paginacja na górze -->
+      <nav v-if="totalPages > 1" class="pagination">
+        <button @click="prevPage" :disabled="currentPage === 1">&lt;</button>
         <button
-          @click="
-            reservationStatus[index]
-              ? cancelReservation(index, ride.id)
-              : makeReservation(index, ride.id)
-          "
+          v-for="page in totalPages"
+          :key="page"
+          :class="{ active: page === currentPage }"
+          @click="setPage(page)"
         >
-          {{ reservationStatus[index] ? "Odwołaj rezerwację" : "Zarezerwuj" }}
+          {{ page }}
         </button>
+        <button @click="nextPage" :disabled="currentPage === totalPages">
+          &gt;
+        </button>
+      </nav>
 
-        <!-- Szczegóły przejazdu -->
-        <div v-if="reservationStatus[index]" class="details">
+      <div v-if="loading" class="loading">Ładowanie...</div>
+      <div v-if="error" class="error">{{ error }}</div>
+      <div v-if="paginatedRides.length === 0 && !loading" class="no-rides">
+        Brak przejazdów do wyświetlenia.
+      </div>
+
+      <ul v-if="paginatedRides.length > 0">
+        <li
+          v-for="(ride, index) in paginatedRides"
+          :key="ride.id"
+          class="ride-item"
+        >
+          <h2>Przejazd: {{ ride.departure }} → {{ ride.destination }}</h2>
           <p>
-            <strong>Dokładny adres wyjazdu:</strong>
-            {{ ride.exactDepartureAddress }}
+            <strong>Dodano przez:</strong>
+            {{ userNames[ride.userId] || "Nieznany użytkownik" }}
           </p>
-          <p>
-            <strong>Dokładny adres dojazdu:</strong>
-            {{ ride.exactDestinationAddress }}
-          </p>
-        </div>
-      </li>
-    </ul>
+          <p><strong>Data:</strong> {{ formatDate(ride.dateTime) }}</p>
+          <p><strong>Miejsca:</strong> {{ ride.seats }}</p>
+
+          <!-- Formularz rezerwacji -->
+          <div v-if="!reservationStatus[index]">
+            <label>Liczba miejsc do rezerwacji:</label>
+            <input
+              type="number"
+              v-model.number="reservationSeats[index]"
+              :max="ride.seats"
+              :min="1"
+              @input="validateSeats(index, ride.seats)"
+            />
+            <p v-if="validationErrors[index]" class="error">
+              {{ validationErrors[index] }}
+            </p>
+          </div>
+
+          <!-- Przyciski -->
+          <button
+            @click="
+              reservationStatus[index]
+                ? cancelReservation(index, ride.id)
+                : makeReservation(index, ride.id)
+            "
+          >
+            {{ reservationStatus[index] ? "Odwołaj rezerwację" : "Zarezerwuj" }}
+          </button>
+
+          <!-- Szczegóły przejazdu -->
+          <div v-if="reservationStatus[index]" class="details">
+            <p>
+              <strong>Dokładny adres wyjazdu:</strong>
+              {{ ride.exactDepartureAddress }}
+            </p>
+            <p>
+              <strong>Dokładny adres dojazdu:</strong>
+              {{ ride.exactDestinationAddress }}
+            </p>
+          </div>
+        </li>
+      </ul>
+
+      <!-- Paginacja na dole -->
+      <nav v-if="totalPages > 1" class="pagination">
+        <button @click="prevPage" :disabled="currentPage === 1">&lt;</button>
+        <button
+          v-for="page in totalPages"
+          :key="page"
+          :class="{ active: page === currentPage }"
+          @click="setPage(page)"
+        >
+          {{ page }}
+        </button>
+        <button @click="nextPage" :disabled="currentPage === totalPages">
+          &gt;
+        </button>
+      </nav>
+    </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { db } from "@/firebaseConfig";
 import {
   doc,
@@ -88,6 +127,31 @@ export default {
     const reservationStatus = ref([]);
     const loading = ref(true);
     const error = ref(null);
+    const currentPage = ref(1);
+    const itemsPerPage = 6;
+
+    // Obliczanie stron
+    const totalPages = computed(() =>
+      Math.ceil(rides.value.length / itemsPerPage)
+    );
+
+    const paginatedRides = computed(() => {
+      const start = (currentPage.value - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      return rides.value.slice(start, end);
+    });
+
+    const nextPage = () => {
+      if (currentPage.value < totalPages.value) {
+        currentPage.value++;
+      }
+    };
+
+    const prevPage = () => {
+      if (currentPage.value > 1) {
+        currentPage.value--;
+      }
+    };
 
     // Pobierz przejazdy
     const fetchRides = async () => {
@@ -227,16 +291,26 @@ export default {
       }
     };
 
+    const setPage = (page) => {
+      currentPage.value = page;
+    };
+
     onMounted(fetchRides);
 
     return {
       rides,
+      paginatedRides,
       userNames,
       reservationSeats,
       validationErrors,
       reservationStatus,
       loading,
       error,
+      currentPage,
+      totalPages,
+      nextPage,
+      prevPage,
+      setPage,
       formatDate: (date) => new Date(date).toLocaleString("pl-PL"),
       makeReservation,
       cancelReservation,
@@ -247,6 +321,12 @@ export default {
 </script>
 
 <style scoped>
+.page {
+  background: linear-gradient(150deg, #05445e, #189ab4, #d4f1f4);
+  padding-top: 30px;
+  padding-bottom: 30px;
+}
+
 .ride-list {
   font-family: Arial, Helvetica, sans-serif;
   padding: 20px;
@@ -324,5 +404,42 @@ button:hover {
   padding: 10px;
   border-top: 1px solid #ddd;
   color: #444;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.pagination button {
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin: 0 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #333;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.pagination button:hover {
+  background-color: #007bff;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.pagination button.active {
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
+  cursor: default;
 }
 </style>

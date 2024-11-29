@@ -1,128 +1,40 @@
 <template>
-  <div class="ride-list">
-    <h1>Lista przejazdów</h1>
-    <div v-if="loading" class="loading">Ładowanie...</div>
-    <div v-if="error" class="error">{{ error }}</div>
-    <div v-if="rides.length === 0 && !loading" class="no-rides">
-      Brak przejazdów do wyświetlenia.
-    </div>
-
-    <ul v-if="rides.length > 0">
-      <li v-for="(ride, index) in rides" :key="ride.id" class="ride-item">
-        <h2>Przejazd: {{ ride.departure }} → {{ ride.destination }}</h2>
-        <p><strong>Data:</strong> {{ formatDate(ride.dateTime) }}</p>
-        <p><strong>Miejsca:</strong> {{ ride.seats }}</p>
-        <button @click="toggleDetails(index)">
-          {{ showDetails[index] ? "Ukryj szczegóły" : "Zarezerwuj" }}
-        </button>
-        <div v-if="showDetails[index]" class="details">
-          <label for="reservationSeats">Liczba miejsc do rezerwacji:</label>
-          <input
-            type="number"
-            v-model.number="reservationSeats[index]"
-            :max="ride.seats"
-            :min="1"
-            @input="validateSeats(index, ride.seats)"
-            placeholder="Podaj liczbę miejsc"
-          />
-          <p v-if="validationErrors[index]" class="error">{{ validationErrors[index] }}</p>
-          <p>
-            <strong>Dokładny adres wyjazdu:</strong>
-            {{ ride.exactDepartureAddress }}
-          </p>
-          <p>
-            <strong>Dokładny adres dojazdu:</strong>
-            {{ ride.exactDestinationAddress }}
-          </p>
-          <p><strong>Dodano przez:</strong> {{ ride.userId }}</p>
+  <div class="page">
+    <div class="my-rides-container">
+      <div class="my-rides">
+        <h1>Twoje rezerwacje</h1>
+        <div v-if="loading" class="loading">Ładowanie...</div>
+        <div v-if="error" class="error">{{ error }}</div>
+        <div v-if="rides.length === 0 && !loading" class="no-rides">
+          Brak aktywnych rezerwacji.
         </div>
-      </li>
-    </ul>
+
+        <ul v-if="rides.length > 0">
+          <li v-for="(ride, index) in rides" :key="ride.id" class="ride-item">
+            <h2>Przejazd: {{ ride.departure }} → {{ ride.destination }}</h2>
+            <p><strong>Data:</strong> {{ formatDate(ride.dateTime) }}</p>
+            <p>
+              <strong>Zarezerwowane miejsca:</strong>
+              {{ reservations[index]?.seats }}
+            </p>
+            <button @click="cancelReservation(index, ride.id)">
+              Odwołaj rezerwację
+            </button>
+
+            <!-- Szczegóły -->
+            <div class="details">
+              <p>
+                <strong>Dokładny adres wyjazdu:</strong>
+                {{ ride.exactDepartureAddress }}
+              </p>
+              <p>
+                <strong>Dokładny adres dojazdu:</strong>
+                {{ ride.exactDestinationAddress }}
+              </p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
   </div>
 </template>
-
-<script>
-import { ref, onMounted } from "vue";
-import { db } from "@/firebaseConfig";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
-
-export default {
-  name: "RideList",
-  setup() {
-    const rides = ref([]); // Lista przejazdów
-    const showDetails = ref([]); // Widoczność szczegółów przejazdów
-    const reservationSeats = ref([]); // Liczba miejsc do rezerwacji dla każdego przejazdu
-    const validationErrors = ref([]); // Walidacja błędów dla liczby miejsc
-    const loading = ref(true); // Status ładowania
-    const error = ref(null); // Obsługa błędów
-
-    // Funkcja do pobierania przejazdów z Firestore
-    const fetchRides = async () => {
-      try {
-        const q = query(collection(db, "rides"), orderBy("dateTime", "asc")); // Pobierz dane z kolekcji "rides"
-        const querySnapshot = await getDocs(q);
-
-        // Mapuj dokumenty na tablicę przejazdów
-        rides.value = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        // Inicjalizuj widoczność szczegółów jako false oraz brak błędów i miejsc do rezerwacji
-        showDetails.value = new Array(rides.value.length).fill(false);
-        reservationSeats.value = new Array(rides.value.length).fill(1); // Domyślna wartość to 1
-        validationErrors.value = new Array(rides.value.length).fill("");
-      } catch (err) {
-        error.value = "Nie udało się pobrać przejazdów: " + err.message;
-      } finally {
-        loading.value = false;
-      }
-    };
-
-    // Funkcja do formatowania daty
-    const formatDate = (dateString) => {
-      const options = {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      };
-      return new Date(dateString).toLocaleDateString("pl-PL", options);
-    };
-
-    // Funkcja do przełączania widoczności szczegółów
-    const toggleDetails = (index) => {
-      showDetails.value[index] = !showDetails.value[index];
-    };
-
-    // Funkcja walidująca liczbę miejsc
-    const validateSeats = (index, availableSeats) => {
-      if (reservationSeats.value[index] > availableSeats) {
-        validationErrors.value[index] = `Nie można zarezerwować więcej niż ${availableSeats} miejsc.`;
-        reservationSeats.value[index] = availableSeats;
-      } else if (reservationSeats.value[index] < 1) {
-        validationErrors.value[index] = "Musisz zarezerwować przynajmniej 1 miejsce.";
-        reservationSeats.value[index] = 1;
-      } else {
-        validationErrors.value[index] = ""; // Brak błędu
-      }
-    };
-
-    // Pobierz przejazdy po zamontowaniu komponentu
-    onMounted(fetchRides);
-
-    return {
-      rides,
-      showDetails,
-      reservationSeats,
-      validationErrors,
-      loading,
-      error,
-      formatDate,
-      toggleDetails,
-      validateSeats,
-    };
-  },
-};
-</script>

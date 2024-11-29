@@ -18,9 +18,8 @@
                 type="number"
                 v-model="seats"
                 placeholder="Podaj liczbę wolnych miejsc"
-                min="1"
-                max="10"
                 required
+                @input="validateMaxSeats"
               />
             </div>
             <div class="form-group">
@@ -126,6 +125,15 @@ export default {
     let departureAutocomplete, destinationAutocomplete;
     const alertMessage = ref("");
     const showAlert = ref(false);
+
+    // Funkcja do walidacji maksymalnej liczby miejsc
+    const validateMaxSeats = () => {
+      if (seats.value > 8) {
+        seats.value = 8;
+      } else if (seats.value < 1) {
+        seats.value = 1;
+      }
+    };
 
     // Funkcja do inicjalizacji mapy
     const initMap = (type) => {
@@ -391,6 +399,7 @@ export default {
       userId,
       alertMessage,
       showAlert,
+      validateMaxSeats,
     };
   },
 

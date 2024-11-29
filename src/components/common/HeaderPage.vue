@@ -9,10 +9,19 @@
       <router-link
         v-if="isLoggedIn && isAdmin"
         to="/admin-dashboard"
-        class="bar-item admin-link"
+        class="bar-item link"
       >
         Panel Administratora
       </router-link>
+      <router-link to="/ride-list" class="bar-item link"
+        >Lista przejazdów</router-link
+      >
+      <router-link v-if="isLoggedIn" to="/add-ride" class="bar-item link"
+        >Dodaj przejazd</router-link
+      >
+      <router-link v-if="isLoggedIn" to="/my-rides" class="bar-item link"
+        >Moje przejazdy</router-link
+      >
       <div
         class="bar-item user-icon"
         @mouseenter="showDropdown"
@@ -179,7 +188,7 @@ export default {
   font-weight: bold;
 }
 
-.admin-link {
+.link {
   margin-right: 1rem;
   color: black;
   font-weight: bold;

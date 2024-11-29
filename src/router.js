@@ -8,6 +8,8 @@ import AdminDashboard from "./components/admin/AdminDashboard.vue";
 import ForgotPasswordPage from "./components/User/ForgotPasswordPage.vue";
 import ResetPasswordPage from "./components/User/ResetPasswordPage.vue";
 import AddRide from "./components/rides/AddRide.vue";
+import RideList from "./components/rides/RideList.vue";
+import MyRides from "./components/rides/MyRides.vue";
 
 const routes = [
   { path: "/", component: HomePage },
@@ -22,6 +24,8 @@ const routes = [
     component: ResetPasswordPage,
   },
   { path: "/add-ride", component: AddRide },
+  { path: "/ride-list", component: RideList },
+  { path: "/my-rides", component: MyRides },
 ];
 
 const router = createRouter({
