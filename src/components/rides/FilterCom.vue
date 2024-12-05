@@ -1,6 +1,6 @@
 <template>
   <div class="filter-container">
-    <h2>Filtry</h2>
+    <h2>Filtruj</h2>
     <!-- Pole wyszukiwania -->
     <div class="filter-group">
       <label for="search">Wyszukaj:</label>

@@ -1,5 +1,1 @@
-<template>Moje przejazdy</template>
-
-<script></script>
-
-<style scoped></style>
+<template>x</template>

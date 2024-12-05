@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <div class="my-rides">
+    <div class="my-reservations">
       <h1>Twoje rezerwacje</h1>
       <div v-if="loading" class="loading">Ładowanie...</div>
       <div v-if="error" class="error">{{ error }}</div>
@@ -53,7 +53,7 @@ import {
 import { getAuth } from "firebase/auth";
 
 export default {
-  name: "MyRides",
+  name: "MyReservation",
   setup() {
     const auth = getAuth();
     const currentUser = auth.currentUser;
@@ -161,7 +161,7 @@ export default {
   background: linear-gradient(150deg, #05445e, #189ab4, #d4f1f4);
 }
 
-.my-rides {
+.my-reservations {
   font-family: Arial, Helvetica, sans-serif;
   padding: 20px;
   max-width: 800px;

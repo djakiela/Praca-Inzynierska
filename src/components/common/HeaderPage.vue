@@ -6,50 +6,50 @@
       </router-link>
     </div>
     <div class="header-end">
+      <!-- Panel Administratora -->
       <router-link
         v-if="isLoggedIn && isAdmin"
         to="/admin-dashboard"
-        class="bar-item link"
+        class="bar-item"
       >
         Panel Administratora
       </router-link>
+
+      <!-- Panel Użytkownika Dropdown -->
+      <div
+        class="bar-item dropdown"
+        @mouseenter="showUserDropdown"
+        @mouseleave="hideUserDropdown"
+      >
+        <span>Panel Użytkownika</span>
+        <div class="dropdown-menu" v-show="isUserDropdownActive">
+          <router-link to="/add-ride" class="dropdown-item"
+            >Dodaj przejazd</router-link
+          >
+          <router-link to="/my-reservation" class="dropdown-item"
+            >Moje rezerwacje</router-link
+          >
+          <router-link to="/my-rides" class="dropdown-item"
+            >Moje przejazdy</router-link
+          >
+        </div>
+      </div>
+
       <router-link to="/" class="bar-item link">Lista przejazdów</router-link>
-      <router-link v-if="isLoggedIn" to="/add-ride" class="bar-item link"
-        >Dodaj przejazd</router-link
-      >
-      <router-link v-if="isLoggedIn" to="/my-reservation" class="bar-item link"
-        >Moje rezerwacje</router-link
-      >
-      <router-link v-if="isLoggedIn" to="/my-rides" class="bar-item link"
-        >Moje przejazdy</router-link
-      >
+
+      <!-- DropDown Icona -->
       <div
         class="bar-item user-icon"
-        @mouseenter="showDropdown"
-        @mouseleave="hideDropdown"
+        @mouseenter="showProfileDropdown"
+        @mouseleave="hideProfileDropdown"
       >
-        <router-link v-if="!isLoggedIn" to="/login"
-          ><a class="login-link">
-            <i class="fas fa-user"></i>
-          </a>
-        </router-link>
-        <button v-else class="icon-button">
-          <i class="fas fa-user"></i>
-          <div class="navbar-dropdown is-right" v-show="isDropdownActive">
-            <div class="buttons">
-              <router-link
-                v-if="isLoggedIn"
-                to="/edit-profile"
-                class="bar-item"
-              >
-                Edytuj Profil
-              </router-link>
-              <a v-if="isLoggedIn" class="bar-item" @click="logout">
-                Wyloguj
-              </a>
-            </div>
-          </div>
-        </button>
+        <i class="fas fa-user"></i>
+        <div class="dropdown-menu" v-show="isProfileDropdownActive">
+          <router-link to="/edit-profile" class="dropdown-item"
+            >Edytuj Profil</router-link
+          >
+          <a @click="logout" class="dropdown-item">Wyloguj</a>
+        </div>
       </div>
     </div>
   </header>
@@ -64,17 +64,26 @@ import { getFirestore, doc, getDoc } from "firebase/firestore";
 export default {
   name: "HeaderPage",
   setup() {
-    const isDropdownActive = ref(false);
+    const isUserDropdownActive = ref(false);
+    const isProfileDropdownActive = ref(false);
     const isLoggedIn = ref(false);
     const isAdmin = ref(false);
     const router = useRouter();
 
-    const showDropdown = () => {
-      isDropdownActive.value = true;
+    const showUserDropdown = () => {
+      isUserDropdownActive.value = true;
     };
 
-    const hideDropdown = () => {
-      isDropdownActive.value = false;
+    const hideUserDropdown = () => {
+      isUserDropdownActive.value = false;
+    };
+
+    const showProfileDropdown = () => {
+      isProfileDropdownActive.value = true;
+    };
+
+    const hideProfileDropdown = () => {
+      isProfileDropdownActive.value = false;
     };
 
     const logout = async () => {
@@ -91,15 +100,10 @@ export default {
       auth.onAuthStateChanged(async (user) => {
         if (user) {
           isLoggedIn.value = true;
-          // Pobieranie roli użytkownika z Firestore
           const docRef = doc(db, "roles", user.uid);
           const docSnap = await getDoc(docRef);
 
-          if (docSnap.exists() && docSnap.data().role === "admin") {
-            isAdmin.value = true;
-          } else {
-            isAdmin.value = false;
-          }
+          isAdmin.value = docSnap.exists() && docSnap.data().role === "admin";
         } else {
           isLoggedIn.value = false;
           isAdmin.value = false;
@@ -108,11 +112,14 @@ export default {
     });
 
     return {
-      isDropdownActive,
+      isUserDropdownActive,
+      isProfileDropdownActive,
       isLoggedIn,
       isAdmin,
-      showDropdown,
-      hideDropdown,
+      showUserDropdown,
+      hideUserDropdown,
+      showProfileDropdown,
+      hideProfileDropdown,
       logout,
     };
   },
@@ -155,59 +162,33 @@ export default {
   position: relative;
 }
 
-.login-link {
-  cursor: pointer;
-  color: black;
+.dropdown {
+  position: relative;
 }
 
-.navbar-dropdown {
+.dropdown-menu {
   position: absolute;
   top: 100%;
   right: 0;
+  left: auto;
   background-color: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   border-radius: 4px;
-  display: none;
-}
-
-.navbar-dropdown.is-right {
-  right: 0;
-}
-
-.bar-item {
-  padding: 0.5rem 1rem;
-  white-space: nowrap;
-  color: black;
-}
-
-.user-icon:hover .navbar-dropdown {
-  display: block;
-}
-
-.navbar-dropdown .bar-item:hover {
-  color: black;
-  font-weight: bold;
-}
-
-.link {
-  margin-right: 1rem;
-  color: black;
-  font-weight: bold;
-}
-
-.buttons {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  padding: 0.5rem 0;
+  width: calc(110% + 1px);
 }
 
-.icon-button {
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-  text-align: center;
-  width: 5%;
-  padding: auto;
+.dropdown-item {
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  color: black;
+  white-space: nowrap;
+}
+
+.dropdown-item:hover {
+  font-weight: bold;
 }
 
 .fas.fa-user {
