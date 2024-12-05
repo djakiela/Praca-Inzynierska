@@ -17,6 +17,7 @@
 
       <!-- Panel Użytkownika Dropdown -->
       <div
+      v-if="isLoggedIn"
         class="bar-item dropdown"
         @mouseenter="showUserDropdown"
         @mouseleave="hideUserDropdown"
@@ -42,9 +43,9 @@
         class="bar-item user-icon"
         @mouseenter="showProfileDropdown"
         @mouseleave="hideProfileDropdown"
-      >
-        <i class="fas fa-user"></i>
-        <div class="dropdown-menu" v-show="isProfileDropdownActive">
+      ><router-link to="/login">
+        <i class="fas fa-user"></i></router-link>
+        <div v-if="isLoggedIn" class="dropdown-menu" v-show="isProfileDropdownActive">
           <router-link to="/edit-profile" class="dropdown-item"
             >Edytuj Profil</router-link
           >
@@ -158,10 +159,7 @@ export default {
   align-items: center;
 }
 
-.user-icon {
-  position: relative;
-}
-
+.user-icon,
 .dropdown {
   position: relative;
 }
@@ -170,14 +168,13 @@ export default {
   position: absolute;
   top: 100%;
   right: 0;
-  left: auto;
   background-color: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   border-radius: 4px;
   display: flex;
   flex-direction: column;
   padding: 0.5rem 0;
-  width: calc(110% + 1px);
+  width: calc(112%); /* Zwiększono szerokość o 2px */
 }
 
 .dropdown-item {
@@ -191,7 +188,31 @@ export default {
   font-weight: bold;
 }
 
-.fas.fa-user {
-  font-size: 22px;
+.user-icon {
+  position: relative; /* Kontener dla pozycji absolutnej */
+}
+
+.user-icon .dropdown-menu {
+  position: absolute;
+  top: 100%; /* Wyświetlenie menu tuż pod ikoną */
+  left: 50%; /* Punkt odniesienia dla środka ikony */
+  transform: translateX(-50%); /* Centrowanie menu względem ikony */
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0;
+  width: 150px; /* Ustawienie szerokości menu */
+  z-index: 1000; /* Zapewnienie widoczności nad innymi elementami */
+}
+
+.fa-user {
+  font-size: 1.3rem;
+  color: black;
+}
+
+.fa-user:hover {
+  color: #189ab4;
 }
 </style>
