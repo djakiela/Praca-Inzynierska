@@ -25,66 +25,69 @@
         Brak przejazdów do wyświetlenia.
       </div>
 
-      <div v-for="(ride, index) in paginatedRides" :key="ride.id" class="ride-item">
-  <h2>Przejazd: {{ ride.departure }} → {{ ride.destination }}</h2>
-  <p>
-    <strong>Dodano przez:</strong>
-    {{ userNames[ride.userId] || "Nieznany użytkownik" }}
-  </p>
-  <p><strong>Data:</strong> {{ formatDate(ride.dateTime) }}</p>
-  <p><strong>Miejsca:</strong> {{ ride.seats }}</p>
-  
-  <!-- Formularz wyboru liczby miejsc -->
-  <div v-if="!reservationStatus[index]">
-    <label>Liczba miejsc do rezerwacji:</label>
-    <input
-    class="seats-input"
-      type="number"
-      v-model.number="reservationSeats[index]"
-      :max="ride.seats"
-      :min="1"
-      @input="validateSeats(index, ride.seats)"
-    />
-    <p v-if="validationErrors[index]" class="error">
-      {{ validationErrors[index] }}
-    </p>
-  </div>
+      <div
+        v-for="(ride, index) in paginatedRides"
+        :key="ride.id"
+        class="ride-item"
+      >
+        <h2>Przejazd: {{ ride.departure }} → {{ ride.destination }}</h2>
+        <p>
+          <strong>Dodano przez:</strong>
+          {{ userNames[ride.userId] || "Nieznany użytkownik" }}
+        </p>
+        <p><strong>Data:</strong> {{ formatDate(ride.dateTime) }}</p>
+        <p><strong>Miejsca:</strong> {{ ride.seats }}</p>
 
-  <!-- Przyciski rezerwacji -->
-  <div>
-    <button
-      @click="
-        reservationStatus[index]
-          ? cancelReservation(index, ride.id)
-          : makeReservation(index, ride.id)
-      "
-    >
-      {{ reservationStatus[index] ? "Odwołaj rezerwację" : "Zarezerwuj" }}
-    </button>
-  </div>
+        <!-- Formularz wyboru liczby miejsc -->
+        <div v-if="!reservationStatus[index]">
+          <label>Liczba miejsc do rezerwacji:</label>
+          <input
+            class="seats-input"
+            type="number"
+            v-model.number="reservationSeats[index]"
+            :max="ride.seats"
+            :min="1"
+            @input="validateSeats(index, ride.seats)"
+          />
+          <p v-if="validationErrors[index]" class="error">
+            {{ validationErrors[index] }}
+          </p>
+        </div>
 
-  <!-- Szczegóły przejazdu -->
-  <div class="details" v-if="reservationStatus[index]">
-    <p>
-      <strong>Dokładny adres wyjazdu:</strong>
-      {{ ride.exactDepartureAddress }}
-    </p>
-    <p>
-      <strong>Dokładny adres dojazdu:</strong>
-      {{ ride.exactDestinationAddress }}
-    </p>
-    <button @click="toggleMap(index, ride.id)">
-      {{ mapVisibility[index] ? "Ukryj mapę" : "Wizualizacja trasy" }}
-    </button>
-  </div>
+        <!-- Przyciski rezerwacji -->
+        <div>
+          <button
+            @click="
+              reservationStatus[index]
+                ? cancelReservation(index, ride.id)
+                : makeReservation(index, ride.id)
+            "
+          >
+            {{ reservationStatus[index] ? "Odwołaj rezerwację" : "Zarezerwuj" }}
+          </button>
+        </div>
 
-  <!-- Box z mapą -->
-  <div
-    v-if="mapVisibility[index]"
-    :id="'map-container-' + ride.id"
-    class="map-container"
-  ></div>
+        <!-- Szczegóły przejazdu -->
+        <div class="details" v-if="reservationStatus[index]">
+          <p>
+            <strong>Dokładny adres wyjazdu:</strong>
+            {{ ride.exactDepartureAddress }}
+          </p>
+          <p>
+            <strong>Dokładny adres dojazdu:</strong>
+            {{ ride.exactDestinationAddress }}
+          </p>
+          <button @click="toggleMap(index, ride.id)">
+            {{ mapVisibility[index] ? "Ukryj mapę" : "Wizualizacja trasy" }}
+          </button>
+        </div>
 
+        <!-- Box z mapą -->
+        <div
+          v-if="mapVisibility[index]"
+          :id="'map-container-' + ride.id"
+          class="map-container"
+        ></div>
       </div>
 
       <!-- Paginacja na dole -->
@@ -106,8 +109,8 @@
   </div>
 </template>
 
-
 <script>
+/* global google */
 import { ref, computed, onMounted } from "vue";
 import { db } from "@/firebaseConfig";
 import {
@@ -126,6 +129,7 @@ import { getAuth } from "firebase/auth";
 
 export default {
   name: "RideList",
+
   setup() {
     const auth = getAuth();
     const currentUser = auth.currentUser;
@@ -134,7 +138,7 @@ export default {
     const reservationSeats = ref([]);
     const validationErrors = ref([]);
     const reservationStatus = ref([]);
-    const mapVisibility = ref([]); // Zmienna do kontrolowania widoczności mapy
+    const mapVisibility = ref([]);
     const loading = ref(true);
     const error = ref(null);
     const currentPage = ref(1);
@@ -182,7 +186,9 @@ export default {
             (response, status) => {
               if (status === "OK") {
                 directionsRenderer.setDirections(response);
-                console.log(`Trasa dla przejazdu ${rideId} została pomyślnie wyznaczona.`);
+                console.log(
+                  `Trasa dla przejazdu ${rideId} została pomyślnie wyznaczona.`
+                );
               } else {
                 console.error(
                   `Błąd podczas wyznaczania trasy dla przejazdu ${rideId}:`,
@@ -199,24 +205,24 @@ export default {
       }
     };
     const toggleMap = (index, rideId) => {
-  mapVisibility.value[index] = !mapVisibility.value[index];
-  if (mapVisibility.value[index]) {
-    visualizeRoute(rideId); // Wyświetl mapę
-  } else {
-    const mapElement = document.getElementById(`map-container-${rideId}`);
-    if (mapElement) mapElement.innerHTML = ""; // Ukryj mapę
-  }
-};
-
+      mapVisibility.value[index] = !mapVisibility.value[index];
+      if (mapVisibility.value[index]) {
+        visualizeRoute(rideId); // Wyświetl mapę
+      } else {
+        const mapElement = document.getElementById(`map-container-${rideId}`);
+        if (mapElement) mapElement.innerHTML = ""; // Ukryj mapę
+      }
+    };
 
     const totalPages = computed(() =>
       Math.ceil(rides.value.length / itemsPerPage)
     );
 
     const paginatedRides = computed(() => {
+      const filteredRides = rides.value.filter((ride) => ride.seats > 0);
       const start = (currentPage.value - 1) * itemsPerPage;
       const end = start + itemsPerPage;
-      return rides.value.slice(start, end);
+      return filteredRides.slice(start, end);
     });
 
     const nextPage = () => {
@@ -232,30 +238,30 @@ export default {
     };
 
     const fetchRides = async () => {
-  try {
-    const q = query(collection(db, "rides"), orderBy("dateTime", "asc"));
-    const querySnapshot = await getDocs(q);
+      try {
+        const q = query(collection(db, "rides"), orderBy("dateTime", "asc"));
+        const querySnapshot = await getDocs(q);
 
-    rides.value = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+        rides.value = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
 
-    reservationSeats.value = new Array(rides.value.length).fill(1);
-    validationErrors.value = new Array(rides.value.length).fill("");
-    reservationStatus.value = new Array(rides.value.length).fill(false);
-    mapVisibility.value = new Array(rides.value.length).fill(false); // Dodano inicjalizację mapVisibility
+        reservationSeats.value = new Array(rides.value.length).fill(1);
+        validationErrors.value = new Array(rides.value.length).fill("");
+        reservationStatus.value = new Array(rides.value.length).fill(false);
+        mapVisibility.value = new Array(rides.value.length).fill(false); // Dodano inicjalizację mapVisibility
 
-    const userIds = [...new Set(rides.value.map((ride) => ride.userId))];
-    await fetchUserNames(userIds);
+        const userIds = [...new Set(rides.value.map((ride) => ride.userId))];
+        await fetchUserNames(userIds);
 
-    if (currentUser) await fetchUserReservations();
-  } catch (err) {
-    error.value = "Nie udało się pobrać przejazdów: " + err.message;
-  } finally {
-    loading.value = false;
-  }
-};
+        if (currentUser) await fetchUserReservations();
+      } catch (err) {
+        error.value = "Nie udało się pobrać przejazdów: " + err.message;
+      } finally {
+        loading.value = false;
+      }
+    };
 
     const fetchUserNames = async (userIds) => {
       const userFetchPromises = userIds.map(async (id) => {
@@ -369,42 +375,38 @@ export default {
     onMounted(fetchRides);
 
     return {
-  rides,
-  paginatedRides,
-  userNames,
-  reservationSeats,
-  validationErrors,
-  reservationStatus,
-  mapVisibility, // Dodano zmienną mapVisibility
-  loading,
-  error,
-  currentPage,
-  totalPages,
-  nextPage,
-  prevPage,
-  setPage,
-  formatDate: (date) => new Date(date).toLocaleString("pl-PL"),
-  makeReservation,
-  cancelReservation,
-  validateSeats,
-  visualizeRoute,
-  toggleMap,
-};
-
+      rides,
+      paginatedRides,
+      userNames,
+      reservationSeats,
+      validationErrors,
+      reservationStatus,
+      mapVisibility, // Dodano zmienną mapVisibility
+      loading,
+      error,
+      currentPage,
+      totalPages,
+      nextPage,
+      prevPage,
+      setPage,
+      formatDate: (date) => new Date(date).toLocaleString("pl-PL"),
+      makeReservation,
+      cancelReservation,
+      validateSeats,
+      visualizeRoute,
+      toggleMap,
+    };
   },
 };
 </script>
 
-
 <style scoped>
 /* Page styling */
 .page {
-  background: linear-gradient(150deg, #05445e, #189ab4, #d4f1f4);
   padding: 30px 0;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
   font-family: Arial, Helvetica, sans-serif;
 }
 
@@ -414,7 +416,7 @@ export default {
   border-radius: 15px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
   padding: 20px;
-  width: 80%;
+  width: 700px;
   max-width: 1000px;
   margin: 0 auto;
 }
@@ -439,12 +441,6 @@ h1 {
   padding: 20px;
   margin-bottom: 15px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.ride-item:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
 }
 
 .ride-item h2 {
@@ -530,9 +526,10 @@ button:nth-of-type(2):hover {
 .details {
   margin-top: 15px;
   padding: 15px;
-  border-top: 1px solid #ddd;
-  background-color: #f9f9f9;
+  border-top: 3px solid #c9c9c9;
+  background-color: white;
   border-radius: 8px;
+  padding-left: 0;
 }
 
 .details p {

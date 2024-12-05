@@ -1,38 +1,59 @@
 <template>
   <div id="HomePage" class="page">
-    <div class="list"><RideList /></div>
+    <div class="pageg">
+      <div class="container">
+        <!-- Filtr -->
+        <FilterCom @filter-changed="updateFilters" />
+
+        <!-- Lista przejazdów -->
+        <div class="list">
+          <RideList :filters="filters" />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-//import FilterCom from '../main/FilterCom.vue';
-//import AlertPage from "@/components/common/AlertPage.vue";
-
-import RideList from "../rides/RideList.vue";
+import FilterCom from "@/components/rides/FilterCom.vue";
+import RideList from "@/components/rides/RideList.vue";
 
 export default {
   name: "HomePage",
-
   components: {
-    //FilterCom
-    //AlertPage,
+    FilterCom,
     RideList,
+  },
+  data() {
+    return {
+      filters: {
+        search: "",
+        date: "",
+        seats: "",
+      },
+    };
+  },
+  methods: {
+    updateFilters(newFilters) {
+      this.filters = newFilters;
+    },
   },
 };
 </script>
+
 <style scoped>
-.text1 {
-  color: white;
-}
-
-.page {
+.pageg {
   background: linear-gradient(150deg, #05445e, #189ab4, #d4f1f4);
-  align-items: center;
+}
+.page {
+  display: flex;
+  flex-direction: column;
   justify-content: center;
+  min-height: 100vh;
 }
 
-.list {
-  padding-top: 30px;
-  padding-bottom: 30px;
+.container {
+  display: flex;
+  align-items: flex-start;
 }
 </style>

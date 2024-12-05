@@ -13,11 +13,12 @@
       >
         Panel Administratora
       </router-link>
-      <router-link to="/ride-list" class="bar-item link"
-        >Lista przejazdów</router-link
-      >
+      <router-link to="/" class="bar-item link">Lista przejazdów</router-link>
       <router-link v-if="isLoggedIn" to="/add-ride" class="bar-item link"
         >Dodaj przejazd</router-link
+      >
+      <router-link v-if="isLoggedIn" to="/my-reservation" class="bar-item link"
+        >Moje rezerwacje</router-link
       >
       <router-link v-if="isLoggedIn" to="/my-rides" class="bar-item link"
         >Moje przejazdy</router-link

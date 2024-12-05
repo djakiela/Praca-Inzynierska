@@ -1,28 +1,35 @@
-
 <template>
   <div class="reset-password-page">
     <h1>Zmiana Hasła</h1>
     <form @submit.prevent="resetPassword">
       <div>
         <label for="newPassword">Nowe Hasło:</label>
-        <input 
-          :type="showNewPassword ? 'text' : 'password'" 
-          v-model="newPassword" 
-          required 
+        <input
+          :type="showNewPassword ? 'text' : 'password'"
+          v-model="newPassword"
+          required
         />
-        <button type="button" class="toggle-visibility" @click="toggleNewPasswordVisibility">
-          {{ showNewPassword ? 'Ukryj' : 'Pokaż' }}
+        <button
+          type="button"
+          class="toggle-visibility"
+          @click="toggleNewPasswordVisibility"
+        >
+          {{ showNewPassword ? "Ukryj" : "Pokaż" }}
         </button>
       </div>
       <div>
         <label for="confirmPassword">Powtórz Hasło:</label>
-        <input 
-          :type="showConfirmPassword ? 'text' : 'password'" 
-          v-model="confirmPassword" 
-          required 
+        <input
+          :type="showConfirmPassword ? 'text' : 'password'"
+          v-model="confirmPassword"
+          required
         />
-        <button type="button" class="toggle-visibility" @click="toggleConfirmPasswordVisibility">
-          {{ showConfirmPassword ? 'Ukryj' : 'Pokaż' }}
+        <button
+          type="button"
+          class="toggle-visibility"
+          @click="toggleConfirmPasswordVisibility"
+        >
+          {{ showConfirmPassword ? "Ukryj" : "Pokaż" }}
         </button>
       </div>
       <button type="submit" class="button">Zmień Hasło</button>
@@ -36,15 +43,15 @@
 import { getAuth, confirmPasswordReset } from "firebase/auth";
 
 export default {
-  name: 'ResetPasswordPage',
+  name: "ResetPasswordPage",
   data() {
     return {
-      newPassword: '',
-      confirmPassword: '',
+      newPassword: "",
+      confirmPassword: "",
       showNewPassword: false,
       showConfirmPassword: false,
-      errorMessage: '',
-      successMessage: '',
+      errorMessage: "",
+      successMessage: "",
     };
   },
   methods: {
@@ -56,28 +63,28 @@ export default {
     },
     async resetPassword() {
       if (this.newPassword !== this.confirmPassword) {
-        this.errorMessage = 'Hasła nie są zgodne.';
+        this.errorMessage = "Hasła nie są zgodne.";
         return;
       }
 
       const urlParams = new URLSearchParams(window.location.search);
-      const oobCode = urlParams.get('oobCode');
+      const oobCode = urlParams.get("oobCode");
 
       if (!oobCode) {
-        this.errorMessage = 'Nieprawidłowy link do resetowania hasła.';
+        this.errorMessage = "Nieprawidłowy link do resetowania hasła.";
         return;
       }
 
       try {
         const auth = getAuth();
         await confirmPasswordReset(auth, oobCode, this.newPassword);
-        this.successMessage = 'Hasło zostało zmienione pomyślnie!';
-        this.errorMessage = '';
+        this.successMessage = "Hasło zostało zmienione pomyślnie!";
+        this.errorMessage = "";
       } catch (error) {
-        this.errorMessage = 'Błąd podczas zmiany hasła: ' + error.message;
+        this.errorMessage = "Błąd podczas zmiany hasła: " + error.message;
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -150,4 +157,3 @@ export default {
   text-align: center;
 }
 </style>
-

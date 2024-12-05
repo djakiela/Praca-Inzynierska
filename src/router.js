@@ -8,7 +8,7 @@ import AdminDashboard from "./components/admin/AdminDashboard.vue";
 import ForgotPasswordPage from "./components/User/ForgotPasswordPage.vue";
 import ResetPasswordPage from "./components/User/ResetPasswordPage.vue";
 import AddRide from "./components/rides/AddRide.vue";
-import RideList from "./components/rides/RideList.vue";
+import MyReservation from "./components/rides/MyReservation.vue";
 import MyRides from "./components/rides/MyRides.vue";
 
 const routes = [
@@ -24,7 +24,7 @@ const routes = [
     component: ResetPasswordPage,
   },
   { path: "/add-ride", component: AddRide },
-  { path: "/ride-list", component: RideList },
+  { path: "/my-reservation", component: MyReservation },
   { path: "/my-rides", component: MyRides },
 ];
 
