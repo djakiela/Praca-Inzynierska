@@ -14,7 +14,7 @@
           <p><strong>Data:</strong> {{ formatDate(ride.dateTime) }}</p>
           <p>
             <strong>Zarezerwowane miejsca:</strong>
-            {{ reservations[index]?.seats }}
+            {{ reservations[index]?.seats || "Brak danych" }}
           </p>
           <button @click="cancelReservation(index, ride.id)">
             Odwołaj rezerwację
@@ -22,6 +22,10 @@
 
           <!-- Szczegóły -->
           <div class="details">
+            <p>
+              <strong>Numer telefonu:</strong>
+              {{ userPhones[ride.userId] || "Brak numeru telefonu" }}
+            </p>
             <p>
               <strong>Dokładny adres wyjazdu:</strong>
               {{ ride.exactDepartureAddress }}
@@ -57,10 +61,11 @@ export default {
   setup() {
     const auth = getAuth();
     const currentUser = auth.currentUser;
-    const rides = ref([]); // Lista przejazdów
-    const reservations = ref([]); // Dane rezerwacji użytkownika
+    const rides = ref([]);
+    const reservations = ref([]);
     const loading = ref(true);
     const error = ref(null);
+    const userPhones = ref({});
 
     // Pobierz rezerwacje użytkownika
     const fetchUserReservations = async () => {
@@ -70,21 +75,23 @@ export default {
           return;
         }
 
-        // Pobierz rezerwacje użytkownika
-        const q = query(
+        // Pobierz rezerwacje
+        const reservationQuery = query(
           collection(db, "reservations"),
           where("userId", "==", currentUser.uid)
         );
-        const reservationDocs = await getDocs(q);
+        const reservationDocs = await getDocs(reservationQuery);
 
         const reservationData = [];
         const ridePromises = [];
+        const userIds = new Set();
 
         reservationDocs.forEach((reservationDoc) => {
-          const reservation = reservationDoc.data();
-          reservationData.push({ ...reservation, id: reservationDoc.id });
-          const rideRef = doc(db, "rides", reservation.rideId); // Poprawione
+          const data = reservationDoc.data();
+          reservationData.push({ ...data, id: reservationDoc.id });
+          const rideRef = doc(db, "rides", data.rideId); // Poprawione użycie doc
           ridePromises.push(getDoc(rideRef));
+          if (data.userId) userIds.add(data.userId); // Zbiór userId
         });
 
         reservations.value = reservationData;
@@ -92,8 +99,22 @@ export default {
         // Pobierz dane przejazdów
         const rideDocs = await Promise.all(ridePromises);
         rides.value = rideDocs
-          .filter((rideDoc) => rideDoc.exists())
-          .map((rideDoc) => ({ id: rideDoc.id, ...rideDoc.data() }));
+          .filter((ride) => ride.exists())
+          .map((ride) => ({ id: ride.id, ...ride.data() }));
+
+        // Pobierz dane użytkowników, w tym numery telefonów
+        const userPromises = Array.from(userIds).map(
+          (userId) => getDoc(doc(db, "users", userId)) // Poprawione użycie doc
+        );
+        const userDocs = await Promise.all(userPromises);
+
+        userDocs.forEach((userDoc) => {
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            userPhones.value[userDoc.id] =
+              userData.phonenumber || "Brak numeru telefonu";
+          }
+        });
       } catch (err) {
         error.value = "Nie udało się pobrać rezerwacji: " + err.message;
       } finally {
@@ -104,22 +125,18 @@ export default {
     // Odwołaj rezerwację
     const cancelReservation = async (index, rideId) => {
       try {
-        const reservedSeats = reservations.value[index].seats;
+        const reservedSeats = reservations.value[index]?.seats || 0;
         const rideRef = doc(db, "rides", rideId);
         const rideDoc = await getDoc(rideRef);
 
         if (rideDoc.exists()) {
-          const currentSeats = rideDoc.data().seats;
-
-          // Zaktualizuj liczbę miejsc w przejeździe
+          const currentSeats = rideDoc.data().seats || 0;
           await updateDoc(rideRef, { seats: currentSeats + reservedSeats });
 
-          // Usuń rezerwację
           await deleteDoc(
             doc(db, "reservations", reservations.value[index].id)
           );
 
-          // Usuń przejazd z listy
           rides.value.splice(index, 1);
           reservations.value.splice(index, 1);
         }
@@ -128,26 +145,25 @@ export default {
       }
     };
 
-    const formatDate = (dateString) => {
-      const options = {
+    const formatDate = (date) =>
+      new Date(date).toLocaleDateString("pl-PL", {
         year: "numeric",
         month: "long",
         day: "numeric",
         hour: "2-digit",
         minute: "2-digit",
-      };
-      return new Date(dateString).toLocaleDateString("pl-PL", options);
-    };
+      });
 
     onMounted(fetchUserReservations);
 
     return {
       rides,
       reservations,
+      userPhones,
       loading,
       error,
-      formatDate,
       cancelReservation,
+      formatDate,
     };
   },
 };

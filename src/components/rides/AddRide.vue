@@ -100,7 +100,7 @@
 import { ref, onMounted } from "vue";
 import { db } from "@/firebaseConfig";
 import { getAuth } from "firebase/auth";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import AlertPage from "@/components/common/AlertPage.vue";
 
 /* global google */
@@ -293,7 +293,7 @@ export default {
           seats: seats.value,
           exactDeparture: exactDeparture.value,
           exactDestination: exactDestination.value,
-          createdAt: new Date().toISOString(),
+          createdAt: serverTimestamp(),
         };
 
         const docRef = await addDoc(collection(db, "rides"), rideData);
