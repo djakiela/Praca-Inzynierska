@@ -17,7 +17,7 @@
 
       <!-- Panel Użytkownika Dropdown -->
       <div
-      v-if="isLoggedIn"
+        v-if="isLoggedIn"
         class="bar-item dropdown"
         @mouseenter="showUserDropdown"
         @mouseleave="hideUserDropdown"
@@ -43,9 +43,13 @@
         class="bar-item user-icon"
         @mouseenter="showProfileDropdown"
         @mouseleave="hideProfileDropdown"
-      ><router-link to="/login">
-        <i class="fas fa-user"></i></router-link>
-        <div v-if="isLoggedIn" class="dropdown-menu" v-show="isProfileDropdownActive">
+      >
+        <router-link to="/login"> <i class="fas fa-user"></i></router-link>
+        <div
+          v-if="isLoggedIn"
+          class="dropdown-menu"
+          v-show="isProfileDropdownActive"
+        >
           <router-link to="/edit-profile" class="dropdown-item"
             >Edytuj Profil</router-link
           >
@@ -92,7 +96,7 @@ export default {
       await signOut(auth);
       isLoggedIn.value = false;
       isAdmin.value = false;
-      router.push("/");
+      router.push("/login");
     };
 
     onMounted(() => {

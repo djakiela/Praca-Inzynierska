@@ -12,6 +12,17 @@
           <input type="email" v-model="email" required />
         </div>
         <div>
+          <label for="phonenumber">Numer telefonu:</label>
+          <input
+            type="phonenumber"
+            v-model="phonenumber"
+            inputmode="numeric"
+            maxlength="9"
+            @input="validatePhoneNumber"
+            required
+          />
+        </div>
+        <div>
           <label for="password">Hasło:</label>
           <input type="password" v-model="password" required />
         </div>
@@ -59,6 +70,7 @@ export default {
       username: "",
       email: "",
       password: "",
+      phonenumber: "",
       termsAccepted: false,
       errorMessage: "",
       showAlert: false,
@@ -66,6 +78,10 @@ export default {
     };
   },
   methods: {
+    validatePhoneNumber() {
+      this.phonenumber = this.phonenumber.replace(/\D/g, "");
+    },
+
     async registerWithEmail() {
       if (!this.termsAccepted) {
         this.errorMessage = "Musisz zaakceptować regulamin.";
@@ -81,11 +97,13 @@ export default {
         );
         const user = userCredential.user;
         await setDoc(doc(db, "users", user.uid), {
+          userId: user.uid,
           username: this.username,
           email: this.email,
+          phonenumber: this.phonenumber,
         });
         await setDoc(doc(db, "roles", user.uid), {
-          role: "user", // or "admin" based on the user role
+          role: "user",
         });
 
         console.log("User registered:", user);
@@ -106,8 +124,10 @@ export default {
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
         await setDoc(doc(db, "users", user.uid), {
+          userId: user.uid,
           username: user.displayName,
           email: user.email,
+          phonenumber: "",
         });
         await setDoc(doc(db, "roles", user.uid), {
           role: "user",
@@ -186,7 +206,8 @@ export default {
 }
 .register-page form input[type="email"],
 .register-page form input[type="password"],
-.register-page form input[type="text"] {
+.register-page form input[type="text"],
+.register-page form input[type="phonenumber"] {
   width: 100%;
   padding: 8px;
   box-sizing: border-box;

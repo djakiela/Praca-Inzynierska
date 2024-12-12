@@ -97,10 +97,10 @@
 </template>
 
 <script>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { db } from "@/firebaseConfig";
 import { getAuth } from "firebase/auth";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import AlertPage from "@/components/common/AlertPage.vue";
 
 /* global google */
@@ -125,6 +125,27 @@ export default {
     let departureAutocomplete, destinationAutocomplete;
     const alertMessage = ref("");
     const showAlert = ref(false);
+
+    watch(exactDepartureAddress, (newAddress) => {
+      if (newAddress) {
+        const geocoder = new google.maps.Geocoder();
+
+        geocoder.geocode({ address: newAddress }, (results, status) => {
+          if (status === "OK" && results[0]) {
+            const addressComponents = results[0].address_components;
+            const city = addressComponents.find((component) =>
+              component.types.includes("locality")
+            )?.long_name;
+
+            if (city) {
+              departure.value = city; // Aktualizacja miejscowości wyjazdu
+            }
+          } else {
+            console.warn("Nie udało się znaleźć miasta dla adresu: " + status);
+          }
+        });
+      }
+    });
 
     // Funkcja do walidacji maksymalnej liczby miejsc
     const validateMaxSeats = () => {
@@ -173,24 +194,34 @@ export default {
       // Dodajemy możliwość kliknięcia na mapie i pobrania adresu
       google.maps.event.addListener(map, "click", (event) => {
         const clickedLocation = event.latLng;
-        marker.setPosition(clickedLocation); // Ustawiamy marker na klikniętej lokalizacji
+        marker.setPosition(clickedLocation);
         const geocoder = new google.maps.Geocoder();
 
         geocoder.geocode({ location: clickedLocation }, (results, status) => {
           if (status === "OK" && results[0]) {
-            // Wypełniamy odpowiednie pole adresem
+            const addressComponents = results[0].address_components;
+            const city = addressComponents.find((component) =>
+              component.types.includes("locality")
+            )?.long_name;
+
             if (type === "departure") {
               exactDepartureAddress.value = results[0].formatted_address;
               exactDeparture.value = {
                 lat: clickedLocation.lat(),
                 lng: clickedLocation.lng(),
               };
+              if (!departure.value) {
+                departure.value = city || "";
+              }
             } else {
               exactDestinationAddress.value = results[0].formatted_address;
               exactDestination.value = {
                 lat: clickedLocation.lat(),
                 lng: clickedLocation.lng(),
               };
+              if (!destination.value) {
+                destination.value = city || "";
+              }
             }
           } else {
             console.warn("Nie udało się znaleźć adresu dla tej lokalizacji");
@@ -251,16 +282,24 @@ export default {
         (results, status) => {
           if (status === "OK") {
             const location = results[0].geometry.location;
+            const addressComponents = results[0].address_components;
+            const city = addressComponents.find((component) =>
+              component.types.includes("locality")
+            )?.long_name;
+
             if (type === "departure") {
-              departureMap.setCenter(location);
-              departureMarker.setPosition(location);
+              if (!departure.value) {
+                // Jeśli pole miejscowości jest puste, przypisz nazwę miasta
+                departure.value = city || "";
+              }
               exactDeparture.value = {
                 lat: location.lat(),
                 lng: location.lng(),
               };
             } else {
-              destinationMap.setCenter(location);
-              destinationMarker.setPosition(location);
+              if (!destination.value) {
+                destination.value = city || "";
+              }
               exactDestination.value = {
                 lat: location.lat(),
                 lng: location.lng(),
@@ -293,7 +332,7 @@ export default {
           seats: seats.value,
           exactDeparture: exactDeparture.value,
           exactDestination: exactDestination.value,
-          createdAt: new Date().toISOString(),
+          createdAt: serverTimestamp(),
         };
 
         const docRef = await addDoc(collection(db, "rides"), rideData);

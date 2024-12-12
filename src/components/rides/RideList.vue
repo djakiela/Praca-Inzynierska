@@ -70,6 +70,10 @@
         <!-- Szczegóły przejazdu -->
         <div class="details" v-if="reservationStatus[index]">
           <p>
+            <strong>Numer telefonu:</strong>
+            {{ userPhones[ride.userId] || "Brak numeru telefonu" }}
+          </p>
+          <p>
             <strong>Dokładny adres wyjazdu:</strong>
             {{ ride.exactDepartureAddress }}
           </p>
@@ -143,6 +147,7 @@ export default {
     const error = ref(null);
     const currentPage = ref(1);
     const itemsPerPage = 6;
+    const userPhones = ref({});
 
     const visualizeRoute = async (rideId) => {
       try {
@@ -251,10 +256,10 @@ export default {
         reservationSeats.value = new Array(rides.value.length).fill(1);
         validationErrors.value = new Array(rides.value.length).fill("");
         reservationStatus.value = new Array(rides.value.length).fill(false);
-        mapVisibility.value = new Array(rides.value.length).fill(false); // Dodano inicjalizację mapVisibility
+        mapVisibility.value = new Array(rides.value.length).fill(false);
 
         const userIds = [...new Set(rides.value.map((ride) => ride.userId))];
-        await fetchUserNames(userIds);
+        await fetchUserNamesAndPhones(userIds);
 
         if (currentUser) await fetchUserReservations();
       } catch (err) {
@@ -264,17 +269,22 @@ export default {
       }
     };
 
-    const fetchUserNames = async (userIds) => {
+    const fetchUserNamesAndPhones = async (userIds) => {
       const userFetchPromises = userIds.map(async (id) => {
         try {
           const userDoc = await getDoc(doc(db, "users", id));
           if (userDoc.exists()) {
-            userNames.value[id] = userDoc.data().username;
+            const userData = userDoc.data();
+            userNames.value[id] = userData.username || "Nieznany użytkownik";
+            userPhones.value[id] =
+              userData.phonenumber || "Brak numeru telefonu";
           } else {
             userNames.value[id] = "Nieznany użytkownik";
+            userPhones.value[id] = "Brak numeru telefonu";
           }
         } catch {
           userNames.value[id] = "Nieznany użytkownik";
+          userPhones.value[id] = "Brak numeru telefonu";
         }
       });
       await Promise.all(userFetchPromises);
@@ -385,6 +395,7 @@ export default {
       validationErrors,
       reservationStatus,
       mapVisibility,
+      userPhones,
       loading,
       error,
       currentPage,

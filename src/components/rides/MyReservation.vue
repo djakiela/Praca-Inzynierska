@@ -14,7 +14,7 @@
           <p><strong>Data:</strong> {{ formatDate(ride.dateTime) }}</p>
           <p>
             <strong>Zarezerwowane miejsca:</strong>
-            {{ reservations[index]?.seats }}
+            {{ reservations[index]?.seats || "Brak danych" }}
           </p>
           <button @click="cancelReservation(index, ride.id)">
             Odwołaj rezerwację
@@ -22,6 +22,10 @@
 
           <!-- Szczegóły -->
           <div class="details">
+            <p>
+              <strong>Numer telefonu:</strong>
+              {{ userPhones[ride.userId] || "Brak numeru telefonu" }}
+            </p>
             <p>
               <strong>Dokładny adres wyjazdu:</strong>
               {{ ride.exactDepartureAddress }}
@@ -34,8 +38,7 @@
               {{ mapVisibility[index] ? "Ukryj mapę" : "Wizualizacja trasy" }}
             </button>
           </div>
-
-          <!-- Wizualizacja trasy -->
+          <!-- Box z mapą -->
           <div
             v-if="mapVisibility[index]"
             :id="'map-container-' + ride.id"
@@ -62,7 +65,6 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import { nextTick } from "vue";
 
 
 export default {
@@ -74,8 +76,10 @@ export default {
     const reservations = ref([]);
     const loading = ref(true);
     const error = ref(null);
+    const userPhones = ref({});
     const mapVisibility = ref([]);
 
+    // Pobierz rezerwacje użytkownika
     const fetchUserReservations = async () => {
       try {
         if (!currentUser) {
@@ -83,30 +87,49 @@ export default {
           return;
         }
 
-        const q = query(
+        // Pobierz rezerwacje użytkownika
+        const reservationQuery = query(
           collection(db, "reservations"),
           where("userId", "==", currentUser.uid)
         );
-        const reservationDocs = await getDocs(q);
+        const reservationDocs = await getDocs(reservationQuery);
 
         const reservationData = [];
         const ridePromises = [];
+        const userIds = new Set();
 
         reservationDocs.forEach((reservationDoc) => {
-          const reservation = reservationDoc.data();
-          reservationData.push({ ...reservation, id: reservationDoc.id });
-          const rideRef = doc(db, "rides", reservation.rideId);
+          const data = reservationDoc.data();
+          reservationData.push({ ...data, id: reservationDoc.id });
+          const rideRef = doc(db, "rides", data.rideId);
           ridePromises.push(getDoc(rideRef));
+          if (data.userId) userIds.add(data.userId);
         });
 
         reservations.value = reservationData;
 
+        // Pobierz dane przejazdów
         const rideDocs = await Promise.all(ridePromises);
         rides.value = rideDocs
-          .filter((rideDoc) => rideDoc.exists())
-          .map((rideDoc) => ({ id: rideDoc.id, ...rideDoc.data() }));
+          .filter((ride) => ride.exists())
+          .map((ride) => ({ id: ride.id, ...ride.data() }));
 
+        // Inicjalizacja widoczności map dla każdego przejazdu
         mapVisibility.value = new Array(rides.value.length).fill(false);
+
+        // Pobierz dane użytkowników, w tym numery telefonów
+        const userPromises = Array.from(userIds).map((userId) =>
+          getDoc(doc(db, "users", userId))
+        );
+        const userDocs = await Promise.all(userPromises);
+
+        userDocs.forEach((userDoc) => {
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            userPhones.value[userDoc.id] =
+              userData.phonenumber || "Brak numeru telefonu";
+          }
+        });
       } catch (err) {
         error.value = "Nie udało się pobrać rezerwacji: " + err.message;
       } finally {
@@ -114,75 +137,17 @@ export default {
       }
     };
 
-    const toggleMap = async (index, rideId) => {
-  mapVisibility.value[index] = !mapVisibility.value[index];
-  if (mapVisibility.value[index]) {
-    await nextTick();
-    visualizeRoute(rideId); 
-  } else {
-    const mapElement = document.getElementById(`map-container-${rideId}`);
-    if (mapElement) mapElement.innerHTML = ""; 
-  }
-};
-
-    const visualizeRoute = async (rideId) => {
-      try {
-        const ride = rides.value.find((r) => r.id === rideId);
-        if (!ride) return;
-
-        const origin = ride.exactDepartureAddress;
-        const destination = ride.exactDestinationAddress;
-
-        if (!origin || !destination) {
-          console.error("Adresy początkowy lub końcowy są nieprawidłowe.");
-          return;
-        }
-
-        const mapElement = document.getElementById(`map-container-${rideId}`);
-        if (!mapElement) {
-          console.error("Kontener mapy nie został znaleziony.");
-          return;
-        }
-
-        mapElement.innerHTML = "";
-
-        const map = new google.maps.Map(mapElement, {
-          zoom: 7,
-          center: { lat: 52.2297, lng: 21.0122 },
-        });
-
-        const directionsService = new google.maps.DirectionsService();
-        const directionsRenderer = new google.maps.DirectionsRenderer();
-        directionsRenderer.setMap(map);
-
-        directionsService.route(
-          {
-            origin,
-            destination,
-            travelMode: google.maps.TravelMode.DRIVING,
-          },
-          (response, status) => {
-            if (status === "OK") {
-              directionsRenderer.setDirections(response);
-            } else {
-              console.error(`Błąd podczas wyznaczania trasy: ${status}`);
-            }
-          }
-        );
-      } catch (err) {
-        console.error("Błąd podczas wizualizacji trasy:", err);
-      }
-    };
-
+    // Odwołaj rezerwację
     const cancelReservation = async (index, rideId) => {
       try {
-        const reservedSeats = reservations.value[index].seats;
+        const reservedSeats = reservations.value[index]?.seats || 0;
         const rideRef = doc(db, "rides", rideId);
         const rideDoc = await getDoc(rideRef);
 
         if (rideDoc.exists()) {
-          const currentSeats = rideDoc.data().seats;
+          const currentSeats = rideDoc.data().seats || 0;
           await updateDoc(rideRef, { seats: currentSeats + reservedSeats });
+
           await deleteDoc(
             doc(db, "reservations", reservations.value[index].id)
           );
@@ -195,15 +160,84 @@ export default {
       }
     };
 
-    const formatDate = (dateString) => {
-      const options = {
+    const formatDate = (date) =>
+      new Date(date).toLocaleDateString("pl-PL", {
         year: "numeric",
         month: "long",
         day: "numeric",
         hour: "2-digit",
         minute: "2-digit",
-      };
-      return new Date(dateString).toLocaleDateString("pl-PL", options);
+      });
+
+    const visualizeRoute = async (rideId) => {
+      try {
+        const rideRef = doc(db, "rides", rideId);
+        const rideDoc = await getDoc(rideRef);
+
+        if (rideDoc.exists()) {
+          const rideData = rideDoc.data();
+
+          const origin = rideData.exactDepartureAddress;
+          const destination = rideData.exactDestinationAddress;
+
+          if (!origin || !destination) {
+            console.error("Adresy początkowy lub końcowy są nieprawidłowe.");
+            return;
+          }
+
+          const mapElement = document.getElementById(`map-container-${rideId}`);
+          if (!mapElement) {
+            console.error("Kontener mapy nie został znaleziony.");
+            return;
+          }
+
+          mapElement.innerHTML = "";
+
+          const map = new google.maps.Map(mapElement, {
+            zoom: 7,
+            center: { lat: 52.2297, lng: 21.0122 },
+          });
+
+          const directionsService = new google.maps.DirectionsService();
+          const directionsRenderer = new google.maps.DirectionsRenderer();
+          directionsRenderer.setMap(map);
+
+          directionsService.route(
+            {
+              origin,
+              destination,
+              travelMode: google.maps.TravelMode.DRIVING,
+            },
+            (response, status) => {
+              if (status === "OK") {
+                directionsRenderer.setDirections(response);
+                console.log(
+                  `Trasa dla przejazdu ${rideId} została pomyślnie wyznaczona.`
+                );
+              } else {
+                console.error(
+                  `Błąd podczas wyznaczania trasy dla przejazdu ${rideId}:`,
+                  status
+                );
+              }
+            }
+          );
+        } else {
+          console.error("Przejazd o podanym ID nie został znaleziony.");
+        }
+      } catch (err) {
+        console.error("Błąd podczas wizualizacji trasy:", err);
+      }
+    };
+
+    const toggleMap = (index, rideId) => {
+      mapVisibility.value[index] = !mapVisibility.value[index];
+      if (mapVisibility.value[index]) {
+        visualizeRoute(rideId); // Wyświetl mapę
+      } else {
+        const mapElement = document.getElementById(`map-container-${rideId}`);
+        if (mapElement) mapElement.innerHTML = ""; // Ukryj mapę
+      }
     };
 
     onMounted(fetchUserReservations);
@@ -211,12 +245,14 @@ export default {
     return {
       rides,
       reservations,
+      userPhones,
       loading,
       error,
       mapVisibility,
-      formatDate,
-      cancelReservation,
       toggleMap,
+      visualizeRoute,
+      cancelReservation,
+      formatDate,
     };
   },
 };
@@ -312,9 +348,9 @@ button:hover {
 .map-container {
   width: 100%;
   height: 400px;
-  margin-top: 10px;
+  margin-top: 20px;
   border: 1px solid #ddd;
-  border-radius: 5px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 </style>
