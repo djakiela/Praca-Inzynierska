@@ -1,5 +1,5 @@
 <template>
-  <div class="edit-ride-page">
+  <div class="add-ride-page">
     <form @submit.prevent="updateRide">
       <AlertPage
         v-if="showAlert"
@@ -15,7 +15,7 @@
               <label for="seats">Liczba wolnych miejsc:</label>
               <input
                 type="number"
-                v-model="ride.seats"
+                v-model="seats"
                 placeholder="Podaj liczbę wolnych miejsc"
                 required
                 @input="validateMaxSeats"
@@ -23,7 +23,7 @@
             </div>
             <div class="form-group">
               <label for="dateTime">Data i godzina przejazdu:</label>
-              <input type="datetime-local" v-model="ride.dateTime" required />
+              <input type="datetime-local" v-model="dateTime" required />
             </div>
           </div>
         </div>
@@ -34,7 +34,7 @@
             <label for="departure">Miejscowość wyjazdu:</label>
             <input
               type="text"
-              v-model="ride.departure"
+              v-model="departure"
               placeholder="Wpisz miejscowość wyjazdu"
               required
             />
@@ -43,7 +43,7 @@
             <label for="destination">Miejscowość dojazdu:</label>
             <input
               type="text"
-              v-model="ride.destination"
+              v-model="destination"
               placeholder="Wpisz miejscowość dojazdu"
               required
             />
@@ -57,20 +57,19 @@
             <input
               type="text"
               id="departureAddressInput"
-              v-model="ride.exactDepartureAddress"
+              v-model="exactDepartureAddress"
               @input="updateMap('departure')"
               placeholder="Wpisz dokładny adres wyjazdu"
               required
             />
             <div id="map-departure" class="map"></div>
           </div>
-
           <div class="form-group">
             <label for="exactDestinationAddress">Dokładny adres dojazdu:</label>
             <input
               type="text"
               id="destinationAddressInput"
-              v-model="ride.exactDestinationAddress"
+              v-model="exactDestinationAddress"
               @input="updateMap('destination')"
               placeholder="Wpisz dokładny adres dojazdu"
               required
@@ -84,9 +83,9 @@
 </template>
 
 <script>
-import { ref, onMounted } from "vue";
-import { db } from "@/firebaseConfig";
+import { ref, onMounted, watch } from "vue";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { db } from "@/firebaseConfig";
 import AlertPage from "@/components/common/AlertPage.vue";
 
 /* global google */
@@ -101,27 +100,34 @@ export default {
     },
   },
   setup(props, { emit }) {
-    const ride = ref({
-      seats: 1,
-      dateTime: "",
-      departure: "",
-      destination: "",
-      exactDepartureAddress: "",
-      exactDestinationAddress: "",
-    });
+    const departure = ref("");
+    const destination = ref("");
+    const exactDepartureAddress = ref("");
+    const exactDestinationAddress = ref("");
+    const exactDeparture = ref({ lat: null, lng: null });
+    const exactDestination = ref({ lat: null, lng: null });
+    const seats = ref(1);
+    const dateTime = ref("");
     const showAlert = ref(false);
     let departureMap, destinationMap, departureMarker, destinationMarker;
 
     const validateMaxSeats = () => {
-      if (ride.value.seats > 8) ride.value.seats = 8;
-      if (ride.value.seats < 1) ride.value.seats = 1;
+      if (seats.value > 8) seats.value = 8;
+      if (seats.value < 1) seats.value = 1;
     };
 
     const initMap = (type) => {
-      const mapElementId = type === "departure" ? "map-departure" : "map-destination";
-      const mapOptions = { center: { lat: 52.2297, lng: 21.0122 }, zoom: 13 };
-      const map = new google.maps.Map(document.getElementById(mapElementId), mapOptions);
-      const marker = new google.maps.Marker({ position: mapOptions.center, map, draggable: true });
+      const mapElementId =
+        type === "departure" ? "map-departure" : "map-destination";
+      const map = new google.maps.Map(document.getElementById(mapElementId), {
+        center: { lat: 52.2297, lng: 21.0122 },
+        zoom: 13,
+      });
+      const marker = new google.maps.Marker({
+        position: { lat: 52.2297, lng: 21.0122 },
+        map: map,
+        draggable: true,
+      });
 
       if (type === "departure") {
         departureMap = map;
@@ -133,17 +139,55 @@ export default {
 
       google.maps.event.addListener(marker, "dragend", () => {
         const position = marker.getPosition();
-        if (type === "departure") {
-          ride.value.exactDepartureAddress = `${position.lat()}, ${position.lng()}`;
-        } else {
-          ride.value.exactDestinationAddress = `${position.lat()}, ${position.lng()}`;
-        }
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ location: position }, (results, status) => {
+          if (status === "OK" && results[0]) {
+            if (type === "departure") {
+              exactDepartureAddress.value = results[0].formatted_address;
+              exactDeparture.value = {
+                lat: position.lat(),
+                lng: position.lng(),
+              };
+            } else {
+              exactDestinationAddress.value = results[0].formatted_address;
+              exactDestination.value = {
+                lat: position.lat(),
+                lng: position.lng(),
+              };
+            }
+          }
+        });
+      });
+
+      google.maps.event.addListener(map, "click", (event) => {
+        const clickedLocation = event.latLng;
+        marker.setPosition(clickedLocation);
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ location: clickedLocation }, (results, status) => {
+          if (status === "OK" && results[0]) {
+            if (type === "departure") {
+              exactDepartureAddress.value = results[0].formatted_address;
+              exactDeparture.value = {
+                lat: clickedLocation.lat(),
+                lng: clickedLocation.lng(),
+              };
+            } else {
+              exactDestinationAddress.value = results[0].formatted_address;
+              exactDestination.value = {
+                lat: clickedLocation.lat(),
+                lng: clickedLocation.lng(),
+              };
+            }
+          }
+        });
       });
     };
 
     const updateMap = (type) => {
       const address =
-        type === "departure" ? ride.value.exactDepartureAddress : ride.value.exactDestinationAddress;
+        type === "departure"
+          ? exactDepartureAddress.value
+          : exactDestinationAddress.value;
       const geocoder = new google.maps.Geocoder();
 
       geocoder.geocode({ address }, (results, status) => {
@@ -158,11 +202,45 @@ export default {
       });
     };
 
+    watch(exactDepartureAddress, (newAddress) => {
+      if (newAddress) {
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ address: newAddress }, (results, status) => {
+          if (status === "OK" && results[0]) {
+            const city = results[0].address_components.find((component) =>
+              component.types.includes("locality")
+            )?.long_name;
+            if (city) departure.value = city;
+          }
+        });
+      }
+    });
+
+    watch(exactDestinationAddress, (newAddress) => {
+      if (newAddress) {
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ address: newAddress }, (results, status) => {
+          if (status === "OK" && results[0]) {
+            const city = results[0].address_components.find((component) =>
+              component.types.includes("locality")
+            )?.long_name;
+            if (city) destination.value = city;
+          }
+        });
+      }
+    });
+
     const fetchRideData = async () => {
       try {
         const rideDoc = await getDoc(doc(db, "rides", props.rideId));
         if (rideDoc.exists()) {
-          ride.value = rideDoc.data();
+          const data = rideDoc.data();
+          seats.value = data.seats;
+          dateTime.value = data.dateTime;
+          departure.value = data.departure;
+          destination.value = data.destination;
+          exactDepartureAddress.value = data.exactDepartureAddress;
+          exactDestinationAddress.value = data.exactDestinationAddress;
         }
       } catch (err) {
         console.error("Nie udało się pobrać danych przejazdu:", err);
@@ -171,7 +249,14 @@ export default {
 
     const updateRide = async () => {
       try {
-        await updateDoc(doc(db, "rides", props.rideId), ride.value);
+        await updateDoc(doc(db, "rides", props.rideId), {
+          seats: seats.value,
+          dateTime: dateTime.value,
+          departure: departure.value,
+          destination: destination.value,
+          exactDepartureAddress: exactDepartureAddress.value,
+          exactDestinationAddress: exactDestinationAddress.value,
+        });
         showAlert.value = true;
         setTimeout(() => {
           showAlert.value = false;
@@ -194,54 +279,93 @@ export default {
     });
 
     return {
-      ride,
-      showAlert,
-      validateMaxSeats,
-      updateMap,
+      departure,
+      destination,
+      exactDepartureAddress,
+      exactDestinationAddress,
+      seats,
+      dateTime,
       updateRide,
+      updateMap,
       handleAlertClose,
+      validateMaxSeats,
+      showAlert,
     };
   },
 };
 </script>
 
 <style scoped>
-.edit-ride-page {
+.short-center {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.add-ride-page {
+  display: center;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
   font-family: Arial, Helvetica, sans-serif;
   background: linear-gradient(150deg, #05445e, #189ab4, #d4f1f4);
-  min-height: 100vh;
+  min-height: 53.3em;
   padding: 2rem;
 }
-.card {
-  width: 100%;
-  max-width: 800px;
-  background-color: white;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-}
+
 h1 {
   text-align: center;
-  color: #333;
+  color: white;
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
 }
+
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 0px;
+  width: 100%;
+  padding: 0;
 }
+
 label {
   display: block;
+  font-size: 1rem;
+  font-weight: bold;
   margin-bottom: 5px;
-  color: #333;
+  color: white;
 }
-input {
+
+.form-group.short {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  margin-bottom: 30px;
+  width: 16%;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="datetime-local"] {
   width: 100%;
   padding: 10px;
   border-radius: 5px;
   border: 1px solid #ccc;
+  box-sizing: border-box;
+  margin-top: 5px;
 }
+
+.map {
+  height: 400px; /* Ustaw wysokość mapy */
+  width: 100%; /* Mapa powinna zajmować pełną szerokość kontenera */
+
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  min-height: 400px; /* Minimalna wysokość mapy */
+}
+
+
+
 button {
   background-color: #189ab4;
   color: white;
@@ -249,16 +373,92 @@ button {
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  font-size: 1rem;
+  width: 100%;
+  margin-top: 10px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
+
 button:hover {
   background-color: #00b3b8;
+  transform: translateY(-3px);
 }
+
+.form-group.double-column {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 250px;
+  width: 100%;
+}
+
+.map-container {
+  display: flex;
+  flex-wrap: wrap; /* Obsługuje zmniejszenie rozmiaru węższych ekranów */
+  justify-content: space-between; /* Rozdziela mapy i pola */
+  gap: 20px; /* Mały odstęp między sekcjami */
+  width: 100%;
+}
+
+.map-section {
+  flex: 1; /* Mapy zajmują równą przestrzeń */
+  min-width: 400px; /* Zapobiega zbyt małemu wyświetlaniu map */
+  max-width: 48%; /* Zapewnia elastyczność */
+}
+
+.map-section label {
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.map-section input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
 .map {
   height: 400px;
   width: 100%;
-  margin-top: 10px;
-  border-radius: 5px;
   border: 1px solid #ccc;
+  border-radius: 5px;
 }
+
+
+.submit-btn {
+  background-color: #189ab4;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 1.1rem;
+  width: 110%;
+  cursor: pointer;
+  display: flex;
+  margin-bottom: 20px;
+  justify-content: center;
+  align-items: center;
+
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.submit-btn:hover {
+  background-color: #00b3b8;
+  transform: translateY(-3px);
+}
+
+form {
+  margin: 0;
+  padding: 0;
+}
+
+.section {
+  margin: 0;
+  padding: 0;
+}
+
 </style>

@@ -161,7 +161,7 @@ export default {
       const mapElementId =
         type === "departure" ? "map-departure" : "map-destination";
       const mapOptions = {
-        center: { lat: 52.2297, lng: 21.0122 }, // Warszawa
+        center: { lat: 52.2297, lng: 21.0122 }, 
         zoom: 13,
       };
       const map = new google.maps.Map(
