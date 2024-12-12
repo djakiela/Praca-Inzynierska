@@ -34,7 +34,16 @@
               <strong>Dokładny adres dojazdu:</strong>
               {{ ride.exactDestinationAddress }}
             </p>
+            <button @click="toggleMap(index, ride.id)">
+              {{ mapVisibility[index] ? "Ukryj mapę" : "Wizualizacja trasy" }}
+            </button>
           </div>
+          <!-- Box z mapą -->
+          <div
+            v-if="mapVisibility[index]"
+            :id="'map-container-' + ride.id"
+            class="map-container"
+          ></div>
         </li>
       </ul>
     </div>
@@ -42,6 +51,7 @@
 </template>
 
 <script>
+/* global google */
 import { ref, onMounted } from "vue";
 import { db } from "@/firebaseConfig";
 import {
@@ -66,6 +76,7 @@ export default {
     const loading = ref(true);
     const error = ref(null);
     const userPhones = ref({});
+    const mapVisibility = ref([]);
 
     // Pobierz rezerwacje użytkownika
     const fetchUserReservations = async () => {
@@ -75,7 +86,7 @@ export default {
           return;
         }
 
-        // Pobierz rezerwacje
+        // Pobierz rezerwacje użytkownika
         const reservationQuery = query(
           collection(db, "reservations"),
           where("userId", "==", currentUser.uid)
@@ -89,9 +100,9 @@ export default {
         reservationDocs.forEach((reservationDoc) => {
           const data = reservationDoc.data();
           reservationData.push({ ...data, id: reservationDoc.id });
-          const rideRef = doc(db, "rides", data.rideId); // Poprawione użycie doc
+          const rideRef = doc(db, "rides", data.rideId);
           ridePromises.push(getDoc(rideRef));
-          if (data.userId) userIds.add(data.userId); // Zbiór userId
+          if (data.userId) userIds.add(data.userId);
         });
 
         reservations.value = reservationData;
@@ -102,9 +113,12 @@ export default {
           .filter((ride) => ride.exists())
           .map((ride) => ({ id: ride.id, ...ride.data() }));
 
+        // Inicjalizacja widoczności map dla każdego przejazdu
+        mapVisibility.value = new Array(rides.value.length).fill(false);
+
         // Pobierz dane użytkowników, w tym numery telefonów
-        const userPromises = Array.from(userIds).map(
-          (userId) => getDoc(doc(db, "users", userId)) // Poprawione użycie doc
+        const userPromises = Array.from(userIds).map((userId) =>
+          getDoc(doc(db, "users", userId))
         );
         const userDocs = await Promise.all(userPromises);
 
@@ -154,6 +168,77 @@ export default {
         minute: "2-digit",
       });
 
+    const visualizeRoute = async (rideId) => {
+      try {
+        const rideRef = doc(db, "rides", rideId);
+        const rideDoc = await getDoc(rideRef);
+
+        if (rideDoc.exists()) {
+          const rideData = rideDoc.data();
+
+          const origin = rideData.exactDepartureAddress;
+          const destination = rideData.exactDestinationAddress;
+
+          if (!origin || !destination) {
+            console.error("Adresy początkowy lub końcowy są nieprawidłowe.");
+            return;
+          }
+
+          const mapElement = document.getElementById(`map-container-${rideId}`);
+          if (!mapElement) {
+            console.error("Kontener mapy nie został znaleziony.");
+            return;
+          }
+
+          mapElement.innerHTML = "";
+
+          const map = new google.maps.Map(mapElement, {
+            zoom: 7,
+            center: { lat: 52.2297, lng: 21.0122 },
+          });
+
+          const directionsService = new google.maps.DirectionsService();
+          const directionsRenderer = new google.maps.DirectionsRenderer();
+          directionsRenderer.setMap(map);
+
+          directionsService.route(
+            {
+              origin,
+              destination,
+              travelMode: google.maps.TravelMode.DRIVING,
+            },
+            (response, status) => {
+              if (status === "OK") {
+                directionsRenderer.setDirections(response);
+                console.log(
+                  `Trasa dla przejazdu ${rideId} została pomyślnie wyznaczona.`
+                );
+              } else {
+                console.error(
+                  `Błąd podczas wyznaczania trasy dla przejazdu ${rideId}:`,
+                  status
+                );
+              }
+            }
+          );
+        } else {
+          console.error("Przejazd o podanym ID nie został znaleziony.");
+        }
+      } catch (err) {
+        console.error("Błąd podczas wizualizacji trasy:", err);
+      }
+    };
+
+    const toggleMap = (index, rideId) => {
+      mapVisibility.value[index] = !mapVisibility.value[index];
+      if (mapVisibility.value[index]) {
+        visualizeRoute(rideId); // Wyświetl mapę
+      } else {
+        const mapElement = document.getElementById(`map-container-${rideId}`);
+        if (mapElement) mapElement.innerHTML = ""; // Ukryj mapę
+      }
+    };
+
     onMounted(fetchUserReservations);
 
     return {
@@ -162,6 +247,9 @@ export default {
       userPhones,
       loading,
       error,
+      mapVisibility,
+      toggleMap,
+      visualizeRoute,
       cancelReservation,
       formatDate,
     };
@@ -254,5 +342,14 @@ button:hover {
   padding: 10px;
   border-top: 1px solid #ddd;
   color: #444;
+}
+
+.map-container {
+  width: 100%;
+  height: 400px;
+  margin-top: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 </style>
