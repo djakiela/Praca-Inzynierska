@@ -242,6 +242,7 @@ export default {
         const q = query(collection(db, "rides"), orderBy("dateTime", "asc"));
         const querySnapshot = await getDocs(q);
 
+        
         rides.value = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
@@ -345,6 +346,8 @@ export default {
           rides.value[index].seats += reservedSeats;
           reservationStatus.value[index] = false;
 
+          mapVisibility.value[index] = false;
+
           const mapElement = document.getElementById(`map-container-${rideId}`);
           if (mapElement) mapElement.innerHTML = "";
         }
@@ -381,7 +384,7 @@ export default {
       reservationSeats,
       validationErrors,
       reservationStatus,
-      mapVisibility, // Dodano zmienną mapVisibility
+      mapVisibility,
       loading,
       error,
       currentPage,
@@ -401,7 +404,6 @@ export default {
 </script>
 
 <style scoped>
-/* Page styling */
 .page {
   padding: 30px 0;
   min-height: 100vh;
@@ -410,7 +412,6 @@ export default {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Ride list container */
 .ride-list {
   background-color: white;
   border-radius: 15px;
@@ -425,7 +426,6 @@ export default {
   width: 30px;
 }
 
-/* Title */
 h1 {
   text-align: center;
   color: #333;
@@ -433,7 +433,6 @@ h1 {
   margin-bottom: 20px;
 }
 
-/* Ride item */
 .ride-item {
   background-color: white;
   border: 1px solid #ddd;
@@ -459,7 +458,6 @@ h1 {
   color: #333;
 }
 
-/* Form section */
 .inputs label {
   font-weight: 500;
   color: #54626f;
@@ -485,7 +483,6 @@ h1 {
   margin-top: 5px;
 }
 
-/* Buttons */
 button {
   padding: 0.8rem 1.5rem;
   font-size: 1rem;
@@ -522,7 +519,6 @@ button:nth-of-type(2):hover {
   background-color: #006b7f;
 }
 
-/* Details section */
 .details {
   margin-top: 15px;
   padding: 15px;
@@ -537,7 +533,6 @@ button:nth-of-type(2):hover {
   color: #3b444b;
 }
 
-/* Pagination */
 .pagination {
   display: flex;
   justify-content: center;
@@ -574,7 +569,6 @@ button:nth-of-type(2):hover {
   font-weight: bold;
 }
 
-/* Map container */
 .map-container {
   width: 100%;
   height: 400px;

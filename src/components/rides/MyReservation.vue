@@ -30,7 +30,17 @@
               <strong>Dokładny adres dojazdu:</strong>
               {{ ride.exactDestinationAddress }}
             </p>
+            <button @click="toggleMap(index, ride.id)">
+              {{ mapVisibility[index] ? "Ukryj mapę" : "Wizualizacja trasy" }}
+            </button>
           </div>
+
+          <!-- Wizualizacja trasy -->
+          <div
+            v-if="mapVisibility[index]"
+            :id="'map-container-' + ride.id"
+            class="map-container"
+          ></div>
         </li>
       </ul>
     </div>
@@ -38,6 +48,7 @@
 </template>
 
 <script>
+/* global google */
 import { ref, onMounted } from "vue";
 import { db } from "@/firebaseConfig";
 import {
@@ -51,18 +62,20 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { nextTick } from "vue";
+
 
 export default {
   name: "MyReservation",
   setup() {
     const auth = getAuth();
     const currentUser = auth.currentUser;
-    const rides = ref([]); // Lista przejazdów
-    const reservations = ref([]); // Dane rezerwacji użytkownika
+    const rides = ref([]);
+    const reservations = ref([]);
     const loading = ref(true);
     const error = ref(null);
+    const mapVisibility = ref([]);
 
-    // Pobierz rezerwacje użytkownika
     const fetchUserReservations = async () => {
       try {
         if (!currentUser) {
@@ -70,7 +83,6 @@ export default {
           return;
         }
 
-        // Pobierz rezerwacje użytkownika
         const q = query(
           collection(db, "reservations"),
           where("userId", "==", currentUser.uid)
@@ -83,17 +95,18 @@ export default {
         reservationDocs.forEach((reservationDoc) => {
           const reservation = reservationDoc.data();
           reservationData.push({ ...reservation, id: reservationDoc.id });
-          const rideRef = doc(db, "rides", reservation.rideId); // Poprawione
+          const rideRef = doc(db, "rides", reservation.rideId);
           ridePromises.push(getDoc(rideRef));
         });
 
         reservations.value = reservationData;
 
-        // Pobierz dane przejazdów
         const rideDocs = await Promise.all(ridePromises);
         rides.value = rideDocs
           .filter((rideDoc) => rideDoc.exists())
           .map((rideDoc) => ({ id: rideDoc.id, ...rideDoc.data() }));
+
+        mapVisibility.value = new Array(rides.value.length).fill(false);
       } catch (err) {
         error.value = "Nie udało się pobrać rezerwacji: " + err.message;
       } finally {
@@ -101,7 +114,66 @@ export default {
       }
     };
 
-    // Odwołaj rezerwację
+    const toggleMap = async (index, rideId) => {
+  mapVisibility.value[index] = !mapVisibility.value[index];
+  if (mapVisibility.value[index]) {
+    await nextTick();
+    visualizeRoute(rideId); 
+  } else {
+    const mapElement = document.getElementById(`map-container-${rideId}`);
+    if (mapElement) mapElement.innerHTML = ""; 
+  }
+};
+
+    const visualizeRoute = async (rideId) => {
+      try {
+        const ride = rides.value.find((r) => r.id === rideId);
+        if (!ride) return;
+
+        const origin = ride.exactDepartureAddress;
+        const destination = ride.exactDestinationAddress;
+
+        if (!origin || !destination) {
+          console.error("Adresy początkowy lub końcowy są nieprawidłowe.");
+          return;
+        }
+
+        const mapElement = document.getElementById(`map-container-${rideId}`);
+        if (!mapElement) {
+          console.error("Kontener mapy nie został znaleziony.");
+          return;
+        }
+
+        mapElement.innerHTML = "";
+
+        const map = new google.maps.Map(mapElement, {
+          zoom: 7,
+          center: { lat: 52.2297, lng: 21.0122 },
+        });
+
+        const directionsService = new google.maps.DirectionsService();
+        const directionsRenderer = new google.maps.DirectionsRenderer();
+        directionsRenderer.setMap(map);
+
+        directionsService.route(
+          {
+            origin,
+            destination,
+            travelMode: google.maps.TravelMode.DRIVING,
+          },
+          (response, status) => {
+            if (status === "OK") {
+              directionsRenderer.setDirections(response);
+            } else {
+              console.error(`Błąd podczas wyznaczania trasy: ${status}`);
+            }
+          }
+        );
+      } catch (err) {
+        console.error("Błąd podczas wizualizacji trasy:", err);
+      }
+    };
+
     const cancelReservation = async (index, rideId) => {
       try {
         const reservedSeats = reservations.value[index].seats;
@@ -110,16 +182,11 @@ export default {
 
         if (rideDoc.exists()) {
           const currentSeats = rideDoc.data().seats;
-
-          // Zaktualizuj liczbę miejsc w przejeździe
           await updateDoc(rideRef, { seats: currentSeats + reservedSeats });
-
-          // Usuń rezerwację
           await deleteDoc(
             doc(db, "reservations", reservations.value[index].id)
           );
 
-          // Usuń przejazd z listy
           rides.value.splice(index, 1);
           reservations.value.splice(index, 1);
         }
@@ -146,8 +213,10 @@ export default {
       reservations,
       loading,
       error,
+      mapVisibility,
       formatDate,
       cancelReservation,
+      toggleMap,
     };
   },
 };
@@ -238,5 +307,14 @@ button:hover {
   padding: 10px;
   border-top: 1px solid #ddd;
   color: #444;
+}
+
+.map-container {
+  width: 100%;
+  height: 400px;
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 </style>

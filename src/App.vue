@@ -5,7 +5,6 @@ import HeaderPage from "./components/common/HeaderPage.vue";
 <template>
   <div>
     <HeaderPage />
-
     <router-view />
   </div>
 </template>
