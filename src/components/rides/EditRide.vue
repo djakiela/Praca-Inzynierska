@@ -1,9 +1,9 @@
 <template>
   <div class="add-ride-page">
     <form @submit.prevent="updateRide">
-      <AlertPage
+      <AlertPage2
         v-if="showAlert"
-        :message="'Przejazd został pomyślnie zaktualizowany!'"
+        :message="'Przejazd został pomyślnie zaktualizowany! <br/> 👍'"
         @close="handleAlertClose"
       />
       <div class="card">
@@ -86,13 +86,13 @@
 import { ref, onMounted, watch } from "vue";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/firebaseConfig";
-import AlertPage from "@/components/common/AlertPage.vue";
+import AlertPage2 from "@/components/common/AlertPage2.vue";
 
 /* global google */
 
 export default {
   name: "EditRide",
-  components: { AlertPage },
+  components: { AlertPage2 },
   props: {
     rideId: {
       type: String,
@@ -116,30 +116,52 @@ export default {
       if (seats.value < 1) seats.value = 1;
     };
 
-    const initMap = (type) => {
+    const initMap = (type, address) => {
       const mapElementId =
         type === "departure" ? "map-departure" : "map-destination";
+      const defaultPosition = { lat: 52.2297, lng: 21.0122 }; // Warszawa jako fallback
+      const geocoder = new google.maps.Geocoder();
+
+      // Tworzenie mapy
       const map = new google.maps.Map(document.getElementById(mapElementId), {
-        center: { lat: 52.2297, lng: 21.0122 },
+        center: defaultPosition,
         zoom: 13,
       });
+
       const marker = new google.maps.Marker({
-        position: { lat: 52.2297, lng: 21.0122 },
         map: map,
         draggable: true,
       });
 
-      if (type === "departure") {
-        departureMap = map;
-        departureMarker = marker;
+      // Ustaw marker na podany adres
+      if (address) {
+        geocoder.geocode({ address: address }, (results, status) => {
+          if (status === "OK" && results[0]) {
+            const location = results[0].geometry.location;
+            map.setCenter(location);
+            marker.setPosition(location);
+            if (type === "departure") {
+              exactDeparture.value = {
+                lat: location.lat(),
+                lng: location.lng(),
+              };
+            } else {
+              exactDestination.value = {
+                lat: location.lat(),
+                lng: location.lng(),
+              };
+            }
+          }
+        });
       } else {
-        destinationMap = map;
-        destinationMarker = marker;
+        // Ustaw domyślne położenie
+        map.setCenter(defaultPosition);
+        marker.setPosition(defaultPosition);
       }
 
+      // Przechwytywanie zdarzenia `dragend`
       google.maps.event.addListener(marker, "dragend", () => {
         const position = marker.getPosition();
-        const geocoder = new google.maps.Geocoder();
         geocoder.geocode({ location: position }, (results, status) => {
           if (status === "OK" && results[0]) {
             if (type === "departure") {
@@ -159,28 +181,13 @@ export default {
         });
       });
 
-      google.maps.event.addListener(map, "click", (event) => {
-        const clickedLocation = event.latLng;
-        marker.setPosition(clickedLocation);
-        const geocoder = new google.maps.Geocoder();
-        geocoder.geocode({ location: clickedLocation }, (results, status) => {
-          if (status === "OK" && results[0]) {
-            if (type === "departure") {
-              exactDepartureAddress.value = results[0].formatted_address;
-              exactDeparture.value = {
-                lat: clickedLocation.lat(),
-                lng: clickedLocation.lng(),
-              };
-            } else {
-              exactDestinationAddress.value = results[0].formatted_address;
-              exactDestination.value = {
-                lat: clickedLocation.lat(),
-                lng: clickedLocation.lng(),
-              };
-            }
-          }
-        });
-      });
+      if (type === "departure") {
+        departureMap = map;
+        departureMarker = marker;
+      } else {
+        destinationMap = map;
+        destinationMarker = marker;
+      }
     };
 
     const updateMap = (type) => {
@@ -194,7 +201,8 @@ export default {
         if (status === "OK") {
           const location = results[0].geometry.location;
           const map = type === "departure" ? departureMap : destinationMap;
-          const marker = type === "departure" ? departureMarker : destinationMarker;
+          const marker =
+            type === "departure" ? departureMarker : destinationMarker;
 
           map.setCenter(location);
           marker.setPosition(location);
@@ -241,6 +249,8 @@ export default {
           destination.value = data.destination;
           exactDepartureAddress.value = data.exactDepartureAddress;
           exactDestinationAddress.value = data.exactDestinationAddress;
+          initMap("departure", data.exactDepartureAddress);
+          initMap("destination", data.exactDestinationAddress);
         }
       } catch (err) {
         console.error("Nie udało się pobrać danych przejazdu:", err);
@@ -261,7 +271,7 @@ export default {
         setTimeout(() => {
           showAlert.value = false;
           emit("close");
-        }, 3000);
+        }, 2500);
       } catch (err) {
         console.error("Błąd podczas aktualizacji przejazdu:", err);
       }
@@ -274,8 +284,6 @@ export default {
 
     onMounted(() => {
       fetchRideData();
-      initMap("departure");
-      initMap("destination");
     });
 
     return {
@@ -364,8 +372,6 @@ input[type="datetime-local"] {
   min-height: 400px; /* Minimalna wysokość mapy */
 }
 
-
-
 button {
   background-color: #189ab4;
   color: white;
@@ -428,7 +434,6 @@ button:hover {
   border-radius: 5px;
 }
 
-
 .submit-btn {
   background-color: #189ab4;
   color: white;
@@ -460,5 +465,4 @@ form {
   margin: 0;
   padding: 0;
 }
-
 </style>
