@@ -38,33 +38,48 @@
         <p><strong>Data:</strong> {{ formatDate(ride.dateTime) }}</p>
         <p><strong>Miejsca:</strong> {{ ride.seats }}</p>
 
-        <!-- Formularz wyboru liczby miejsc -->
-        <div v-if="!reservationStatus[index]">
-          <label>Liczba miejsc do rezerwacji:</label>
-          <input
-            class="seats-input"
-            type="number"
-            v-model.number="reservationSeats[index]"
-            :max="ride.seats"
-            :min="1"
-            @input="validateSeats(index, ride.seats)"
-          />
-          <p v-if="validationErrors[index]" class="error">
-            {{ validationErrors[index] }}
-          </p>
-        </div>
-
-        <!-- Przyciski rezerwacji -->
+        <!-- Przyciski rezerwacji lub komunikat dla właściciela przejazdu -->
         <div>
-          <button
-            @click="
-              reservationStatus[index]
-                ? cancelReservation(index, ride.id)
-                : makeReservation(index, ride.id)
-            "
-          >
-            {{ reservationStatus[index] ? "Odwołaj rezerwację" : "Zarezerwuj" }}
-          </button>
+          <template v-if="ride.userId === currentUser?.uid">
+            <p class="info-message">
+              Ten przejazd należy do Ciebie. Możesz go sprawdzić w sekcji
+              <strong>Moje przejazdy</strong>.
+            </p>
+            <button @click="goToMyRides" class="my-rides-btn">
+              Przejdź do moich przejazdów
+            </button>
+          </template>
+
+          <template v-else>
+            <!-- Formularz wyboru liczby miejsc -->
+            <div v-if="!reservationStatus[index]">
+              <label>Liczba miejsc do rezerwacji:</label>
+              <input
+                class="seats-input"
+                type="number"
+                v-model.number="reservationSeats[index]"
+                :max="ride.seats"
+                :min="1"
+                @input="validateSeats(index, ride.seats)"
+              />
+              <p v-if="validationErrors[index]" class="error">
+                {{ validationErrors[index] }}
+              </p>
+            </div>
+
+            <!-- Przyciski rezerwacji -->
+            <button
+              @click="
+                reservationStatus[index]
+                  ? cancelReservation(index, ride.id)
+                  : makeReservation(index, ride.id)
+              "
+            >
+              {{
+                reservationStatus[index] ? "Odwołaj rezerwację" : "Zarezerwuj"
+              }}
+            </button>
+          </template>
         </div>
 
         <!-- Szczegóły przejazdu -->
@@ -116,6 +131,7 @@
 <script>
 /* global google */
 import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import { db } from "@/firebaseConfig";
 import {
   doc,
@@ -148,6 +164,7 @@ export default {
     const currentPage = ref(1);
     const itemsPerPage = 6;
     const userPhones = ref({});
+    const router = useRouter();
 
     const visualizeRoute = async (rideId) => {
       try {
@@ -247,7 +264,6 @@ export default {
         const q = query(collection(db, "rides"), orderBy("dateTime", "asc"));
         const querySnapshot = await getDocs(q);
 
-        
         rides.value = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
@@ -385,6 +401,10 @@ export default {
       currentPage.value = page;
     };
 
+    const goToMyRides = () => {
+      router.push("/my-rides"); // Zakładając, że ścieżka to '/my-rides'
+    };
+
     onMounted(fetchRides);
 
     return {
@@ -400,6 +420,7 @@ export default {
       error,
       currentPage,
       totalPages,
+      goToMyRides,
       nextPage,
       prevPage,
       setPage,

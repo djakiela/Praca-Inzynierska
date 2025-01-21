@@ -1,99 +1,71 @@
 <template>
-  <div class="add-ride-page">
-    <form @submit.prevent="addRide">
+  <form @submit.prevent="addRide">
+    <body>
       <AlertPage
         v-if="showAlert"
         :message="alertMessage"
         @close="handleAlertClose"
       />
-      <div class="card">
-        <!-- Sekcja Liczba wolnych miejsc oraz Data -->
-        <div class="short-center">
-          <div class="form-group short">
-            <!-- Przycisk dodania przejazdu -->
-            <button type="submit" class="submit-btn">Dodaj Przejazd</button>
-            <div class="form-group">
-              <label for="seats">Liczba wolnych miejsc:</label>
-              <input
-                type="number"
-                v-model="seats"
-                placeholder="Podaj liczbę wolnych miejsc"
-                required
-                @input="validateMaxSeats"
-              />
-            </div>
-            <div class="form-group">
-              <label for="dateTime">Data i godzina przejazdu:</label>
-              <input type="datetime-local" v-model="dateTime" required />
-            </div>
-          </div>
-        </div>
-
-        <!-- Sekcja miejscowości wyjazdu i dojazdu oraz mapy -->
-        <div class="form-group double-column">
-          <!-- Miejscowość wyjazdu -->
-          <div class="form-group">
-            <label for="departure">Miejscowość wyjazdu:</label>
-            <input
-              type="text"
-              v-model="departure"
-              placeholder="Wpisz miejscowość wyjazdu"
-              required
-            />
-          </div>
-
-          <!-- Miejscowość dojazdu -->
-          <div class="form-group">
-            <label for="destination">Miejscowość dojazdu:</label>
-            <input
-              type="text"
-              v-model="destination"
-              placeholder="Wpisz miejscowość dojazdu"
-              required
-            />
-          </div>
-        </div>
-
-        <!-- Dokładny adres wyjazdu i dojazdu oraz mapy -->
-        <div class="form-group double-column">
-          <div class="form-group">
-            <label for="exactDepartureAddress">Dokładny adres wyjazdu:</label>
-            <input
-              type="text"
-              id="departureAddressInput"
-              v-model="exactDepartureAddress"
-              @input="updateMap('departure')"
-              placeholder="Wpisz dokładny adres wyjazdu lub zaznacz na mapie"
-              required
-            />
-            <button type="button" @click="toggleMap('departure')">
-              Pokaż mapę
-            </button>
-            <div v-show="showDepartureMap" id="map-departure" class="map"></div>
-          </div>
-
-          <div class="form-group">
-            <label for="exactDestinationAddress">Dokładny adres dojazdu:</label>
-            <input
-              type="text"
-              id="destinationAddressInput"
-              v-model="exactDestinationAddress"
-              @input="updateMap('destination')"
-              placeholder="Wpisz dokładny adres dojazdu lub zaznacz na mapie"
-            />
-            <button type="button" @click="toggleMap('destination')">
-              Pokaż mapę
-            </button>
-            <div
-              v-show="showDestinationMap"
-              id="map-destination"
-              class="map"
-            ></div>
-          </div>
-        </div>
-      </div>
-    </form>
-  </div>
+      <button @click="handleAddRide">Dodaj przejazd</button>
+      <section>
+        <label for="seats">Liczba wolnych miejsc:</label>
+        <input
+          type="number"
+          v-model="seats"
+          placeholder="Podaj liczbę wolnych miejsc"
+          required
+          @input="validateMaxSeats"
+        />
+      </section>
+      <section>
+        <label for="dateTime">Data i godzina przejazdu:</label>
+        <input type="datetime-local" v-model="dateTime" required />
+      </section>
+      <section>
+        <label for="departure">Miejsce wyjazdu:</label>
+        <input
+          type="text"
+          v-model="departure"
+          placeholder="Podaj miejsce wyjazdu"
+        />
+      </section>
+      <section>
+        <label for="destination">Miejsce docelowe:</label>
+        <input
+          type="text"
+          v-model="destination"
+          placeholder="Podaj miejsce docelowe"
+        />
+      </section>
+      <section>
+        <label for="exactDepartureAddress">Dokładny adres wyjazdu:</label>
+        <input
+          type="text"
+          id="departureAddressInput"
+          v-model="exactDepartureAddress"
+          @input="updateMap('departure')"
+          placeholder="Wpisz dokładny adres wyjazdu lub zaznacz na mapie"
+          required
+        />
+        <button type="button" @click="toggleMap('departure')">Mapa</button>
+        <div v-show="showDepartureMap" id="map-departure" class="map"></div>
+      </section>
+      <section>
+        <label for="exactDestinationAddress">Dokładny adres dojazdu:</label>
+        <input
+          type="text"
+          id="destinationAddressInput"
+          v-model="exactDestinationAddress"
+          @input="updateMap('destination')"
+          placeholder="Wpisz dokładny adres dojazdu lub zaznacz na mapie"
+          required
+        />
+        <button type="button" @click="toggleMap('destination')">Mapa</button>
+        <div v-show="showDestinationMap" id="map-destination" class="map"></div>
+      </section>
+    </body>
+    <footer></footer>
+  </form>
 </template>
 
 <script>
@@ -464,154 +436,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.add-ride-page {
-  display: center;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  font-family: Arial, Helvetica, sans-serif;
-  background: linear-gradient(150deg, #05445e, #189ab4, #d4f1f4);
-  min-height: 53.3em;
-  padding: 2rem;
-}
-
-h1 {
-  text-align: center;
-  color: white;
-  font-size: 2.5rem;
-  margin-bottom: 2rem;
-}
-
-.form-group {
-  margin-bottom: 20px;
-  width: 100%;
-}
-
-label {
-  display: block;
-  font-size: 1rem;
-  font-weight: bold;
-  margin-bottom: 5px;
-  color: white;
-}
-
-.form-group.short {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  margin-bottom: 30px;
-  width: 16%;
-}
-
-input[type="text"],
-input[type="number"],
-input[type="datetime-local"] {
-  width: 100%;
-  padding: 10px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  box-sizing: border-box;
-  margin-top: 5px;
-}
-
-button {
-  background-color: #189ab4;
-  color: white;
-  padding: 10px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1rem;
-  width: 100%;
-  margin-top: 10px;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-button:hover {
-  background-color: #00b3b8;
-  transform: translateY(-3px);
-}
-
-.form-group.double-column {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 250px;
-
-  width: 100%;
-}
-
-.map {
-  height: 400px;
-  width: 100%;
-  margin-top: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  transform: translateY(100%);
-  transition: transform 0.3s ease-in-out;
-}
-
-.map.show {
-  transform: translateY(0);
-}
-
-.submit-btn {
-  background-color: #189ab4;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 1rem;
-  font-size: 1.1rem;
-  width: 110%;
-  cursor: pointer;
-  display: flex;
-  margin-bottom: 20px;
-  justify-content: center;
-  align-items: center;
-
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.submit-btn:hover {
-  background-color: #00b3b8;
-  transform: translateY(-3px);
-}
-
-button[type="button"] {
-  background-color: #05445e;
-  color: white;
-  padding: 10px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-top: 10px;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-button[type="button"]:hover {
-  background-color: #006b7f;
-  transform: translateY(-3px);
-}
-
-input[type="datetime-local"] {
-  padding: 10px;
-  margin-top: 5px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  box-sizing: border-box;
-}
-
-.submit-btn:disabled {
-  background-color: #7d9c9b;
-  cursor: not-allowed;
-}
-
-.short-center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-}
-</style>
