@@ -75,9 +75,6 @@
           <RideList />
         </section>
       </main>
-      <footer>
-        <p>&copy; 2025 GetRidehub. Wszystkie prawa zastrzeżone.</p>
-      </footer>
     </div>
   </body>
 </template>
@@ -111,7 +108,6 @@ export default {
     };
 
     onMounted(() => {
-      // Przewiń do sekcji, jeśli `scrollTo` jest obecne w zapytaniu
       if (route.query.scrollTo) {
         scrollToSection(route.query.scrollTo);
       }
@@ -141,6 +137,18 @@ export default {
   margin-top: 150px;
 }
 
+.header-welcome h1 {
+  font-size: 3em;
+  color: white;
+  text-shadow: 0px 0px 10px rgba(0, 0, 0, 0.8); /* Czarna poświata */
+}
+
+.header-welcome p {
+  font-size: 1.5em;
+  color: white;
+  text-shadow: 0px 0px 8px rgba(0, 0, 0, 0.8); /* Czarna poświata */
+}
+
 section {
   display: flex;
   align-items: flex-start;
@@ -152,25 +160,20 @@ body {
   margin: 0;
   padding: 0;
   background-image: url("theme.jpg");
-  background-attachment: fixed; /* Efekt przesuwania */
+  background-attachment: fixed;
   background-size: cover;
   background-position: center;
-  color: #333;
+  color: #ffffff; /* Biały tekst */
 }
+
 header {
   height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  color: white;
+  color: #ffffff; /* Biały tekst */
   text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
-}
-
-.activeSection {
-  position: absolute;
-  top: 40%;
-  width: 100%;
 }
 
 .buttons-header {
@@ -184,65 +187,25 @@ header {
   padding: 10px 20px;
   border: none;
   border-radius: 5px;
-  background-color: #007bff;
-  color: white;
+  background-color: #ffc300; /* Żółty */
+  color: #000000; /* Czarny tekst */
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, box-shadow 0.3s;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 .buttons-header button:hover {
-  background-color: #0056b3;
+  background-color: #ffd700; /* Jaśniejszy żółty */
 }
 
 .buttons-header button.active {
-  background-color: #0056b3;
+  background-color: #ffb000; /* Mocny żółty */
   font-weight: bold;
 }
 
 .content-section {
-  margin-top: 10px;
-  padding: 20px;
-  background: rgba(
-    255,
-    255,
-    255,
-    0.9
-  ); /* Tło białe z lekko przezroczystym efektem */
+  background: rgba(51, 51, 51, 0.9); /* Ciemny szary */
+  color: #ffffff;
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  text-align: left;
-  width: 20%;
-  margin: 0 auto; /* Wyśrodkowanie sekcji */
-}
-
-.content-section article {
-  margin: 0;
-}
-
-.content-section h2 {
-  margin-top: 0;
-  color: #007bff;
-}
-
-main {
-  padding: 20px;
-}
-
-article {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-article h2 {
-  margin-top: 0;
-  color: #007bff;
-}
-footer {
-  background-color: #333;
-  color: white;
-  text-align: center;
-  padding: 10px 0;
-  margin-top: 20px;
 }
 </style>

@@ -147,6 +147,11 @@ export default {
   padding: 1rem;
   background-color: white;
   font-family: Arial, Helvetica, sans-serif;
+  position: fixed; /* Sticky header */
+  top: 0; /* Przyklejony do górnej krawędzi */
+  width: 100%; /* Rozciągnięcie na całą szerokość */
+  z-index: 1000; /* Zapewnienie widoczności nad innymi elementami */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Delikatny cień dla efektu */
 }
 
 .header-bar {
