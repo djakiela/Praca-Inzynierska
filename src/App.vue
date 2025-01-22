@@ -1,12 +1,17 @@
 <script setup>
-import HeaderPage from "./components/common/HeaderPage.vue";
+import HeaderPage from '@/components/common/HeaderPage.vue';
+import RideList from './components/rides/RideList.vue';
 </script>
 
 <template>
-  <div>
+  <body id="HomePage" >
+    <nav>
     <HeaderPage />
-    <router-view />
-  </div>
+    </nav>
+  <main>
+    <RideList />
+  </main>
+    </body>
 </template>
 
 <style>
