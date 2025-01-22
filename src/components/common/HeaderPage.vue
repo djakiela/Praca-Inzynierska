@@ -1,9 +1,14 @@
 <template>
   <header class="header">
     <div class="header-bar">
+      <img src="/public/logo.png" alt="Logo" class="logo" />
+      <span class="logo-span"><b>GetRidehub</b></span>
       <router-link to="/" class="bar-item bar-title">
         Strona Główna
       </router-link>
+      <router-link to="/?scrollTo=rides-list" class="bar-item bar-title"
+        >Lista przejazdów</router-link
+      >
     </div>
     <div class="header-end">
       <!-- Panel Administratora -->
@@ -35,8 +40,6 @@
           >
         </div>
       </div>
-
-      <router-link to="/" class="bar-item link">Lista przejazdów</router-link>
 
       <!-- DropDown Icona -->
       <div
@@ -132,6 +135,11 @@ export default {
 </script>
 
 <style scoped>
+.logo-span {
+  font-size: 1.5rem;
+  margin-right: 15px;
+}
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -218,5 +226,11 @@ export default {
 
 .fa-user:hover {
   color: #189ab4;
+}
+
+.logo {
+  width: 30px;
+  height: 30px;
+  margin-left: 1rem;
 }
 </style>

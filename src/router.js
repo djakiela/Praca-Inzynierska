@@ -12,7 +12,7 @@ import MyReservation from "./components/rides/MyReservation.vue";
 import MyRides from "./components/rides/MyRides.vue";
 
 const routes = [
-  { path: "/", component: () => import("./App.vue")},
+  { path: "/", component: HomePage },
   { path: "/login", component: LoginPage },
   { path: "/register", component: RegisterPage },
   { path: "/edit-profile", component: EditProfilePage },
