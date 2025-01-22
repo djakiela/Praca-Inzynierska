@@ -12,21 +12,30 @@
       </div>
 
       <ul v-if="rides.length > 0">
-        <li v-for="(ride, index) in rides" :key="ride.id" class="ride-item">
+        <li v-for="ride in rides" :key="ride.id" class="ride-item">
           <h2>Przejazd: {{ ride.departure }} → {{ ride.destination }}</h2>
           <p><strong>Data:</strong> {{ formatDate(ride.dateTime) }}</p>
           <p><strong>Wolne miejsca:</strong> {{ ride.seats }}</p>
 
           <div class="details">
-            <p><strong>Dokładny adres wyjazdu:</strong> {{ ride.exactDepartureAddress }}</p>
-            <p><strong>Dokładny adres dojazdu:</strong> {{ ride.exactDestinationAddress }}</p>
+            <p>
+              <strong>Dokładny adres wyjazdu:</strong>
+              {{ ride.exactDepartureAddress }}
+            </p>
+            <p>
+              <strong>Dokładny adres dojazdu:</strong>
+              {{ ride.exactDestinationAddress }}
+            </p>
             <div v-if="ride.reservations && ride.reservations.length > 0">
               <h4>Użytkownicy, którzy zarezerwowali miejsca:</h4>
               <ul>
                 <li v-for="user in ride.reservations" :key="user.userId">
                   <strong>{{ user.username }}</strong>
                   <ul>
-                    <li>• Numer telefonu: {{ user.phone || "Brak numeru telefonu" }}</li>
+                    <li>
+                      • Numer telefonu:
+                      {{ user.phone || "Brak numeru telefonu" }}
+                    </li>
                     <li>• Zarezerwowane miejsca: {{ user.seats }}</li>
                   </ul>
                 </li>
