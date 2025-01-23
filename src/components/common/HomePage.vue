@@ -32,9 +32,10 @@
               <article>
                 <h2>O nas</h2>
                 <p>
-                  Jesteśmy platformą, która łączy pasażerów i kierowców. Naszym
-                  celem jest ułatwienie podróżowania, oszczędność czasu i
-                  promowanie ekologicznych rozwiązań transportowych.
+                  Jesteśmy platformą, która łączy pasażerów i kierowców.<br />
+                  Naszym celem jest ułatwienie podróżowania, <br />
+                  oszczędność czasu i promowanie ekologicznych rozwiązań
+                  transportowych.
                 </p>
               </article>
             </section>
@@ -159,10 +160,6 @@ body {
   line-height: 1.6;
   margin: 0;
   padding: 0;
-  background-image: url("theme.jpg");
-  background-attachment: fixed;
-  background-size: cover;
-  background-position: center;
   color: #ffffff; /* Biały tekst */
 }
 
@@ -207,5 +204,12 @@ header {
   background: rgba(51, 51, 51, 0.9); /* Ciemny szary */
   color: #ffffff;
   border-radius: 10px;
+  text-align: left;
+  padding: 10px;
+}
+
+.content-section h2,
+p {
+  text-align: center;
 }
 </style>
