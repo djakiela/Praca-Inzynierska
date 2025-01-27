@@ -2,7 +2,7 @@
   <body id="HomePage">
     <div class="container">
       <header>
-        <div class="header-welcome">
+        <div id="home" class="header-welcome">
           <h1>Witamy na naszej stronie!</h1>
           <p>Znajdź przejazd, dodaj swoją trasę i podróżuj wygodnie.</p>
         </div>
@@ -187,7 +187,9 @@ header {
   background-color: #ffc300; /* Żółty */
   color: #000000; /* Czarny tekst */
   cursor: pointer;
-  transition: background-color 0.3s, box-shadow 0.3s;
+  transition:
+    background-color 0.3s,
+    box-shadow 0.3s;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
 }
 

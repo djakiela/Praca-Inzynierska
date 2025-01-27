@@ -1,63 +1,53 @@
 <template>
   <body>
     <main>
-      <section class="logo">
-        <img src="/public/logo.png" alt="Logo" />
-        <span class="logo-span"><b>GetRidehub</b></span>
+      <section class="logo-section">
+        <div clas="logo">
+          <img src="/public/logo.png" alt="Logo" />
+          <span class="logo"><b>GetRidehub</b></span>
+        </div>
+        <nav class="nav-links">
+          <router-link to="/?scrollTo=HomePage"> Strona Główna </router-link>
+          <router-link to="/?scrollTo=rides-list">Lista przejazdów</router-link>
+        </nav>
       </section>
-      <section>
-        <router-link to="/" class="bar-item bar-title">
-          Strona Główna
-        </router-link>
-        <router-link to="/?scrollTo=rides-list" class="bar-item bar-title"
-          >Lista przejazdów</router-link
-        >
-      </section>
-      <section>
+      <section class="user-section">
         <router-link
           v-if="isLoggedIn && isAdmin"
           to="/admin-dashboard"
-          class="bar-item"
+          class="router"
         >
           Panel Administratora
         </router-link>
 
         <div
           v-if="isLoggedIn"
-          class="bar-item dropdown"
           @mouseenter="showUserDropdown"
           @mouseleave="hideUserDropdown"
+          class="drop"
         >
           <span>Panel Użytkownika</span>
-          <div class="dropdown-menu" v-show="isUserDropdownActive">
-            <router-link to="/add-ride" class="dropdown-item"
-              >Dodaj przejazd</router-link
-            >
-            <router-link to="/my-reservation" class="dropdown-item"
-              >Moje rezerwacje</router-link
-            >
-            <router-link to="/my-rides" class="dropdown-item"
-              >Moje przejazdy</router-link
-            >
+          <div v-show="isUserDropdownActive" class="drop-box">
+            <router-link to="/add-ride">Dodaj przejazd</router-link>
+            <router-link to="/my-reservation">Moje rezerwacje</router-link>
+            <router-link to="/my-rides">Moje przejazdy</router-link>
           </div>
         </div>
 
         <!-- DropDown Icona -->
         <div
-          class="bar-item user-icon"
           @mouseenter="showProfileDropdown"
           @mouseleave="hideProfileDropdown"
+          class="drop"
         >
           <router-link to="/login"> <i class="fas fa-user"></i></router-link>
           <div
             v-if="isLoggedIn"
-            class="dropdown-menu"
             v-show="isProfileDropdownActive"
+            class="drop-box fas-box"
           >
-            <router-link to="/edit-profile" class="dropdown-item"
-              >Edytuj Profil</router-link
-            >
-            <a @click="logout" class="dropdown-item">Wyloguj</a>
+            <router-link to="/edit-profile">Edytuj Profil</router-link>
+            <a @click="logout">Wyloguj</a>
           </div>
         </div>
       </section>
@@ -139,31 +129,96 @@ export default {
 <style scoped>
 body {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  margin: 0;
   font-family: Arial, Helvetica, sans-serif;
 }
 
 main {
   position: fixed;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
   top: 0;
   width: 100%;
   z-index: 100% box-shadow 0 2px 5px rgba(0, 0, 0, 0.1);
   background-color: #f8f9fa;
 }
 
-.logo span {
-  font-size: 1.5rem;
-  margin-right: 15px;
-}
-
-.logo img {
-  width: 30px;
-  height: 30px;
-  margin-left: 15px;
+.logo-section {
+  display: flex;
+  align-items: center;
 }
 
 .logo {
+  display: inline-block;
   align-items: center;
+  margin-right: 18px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  vertical-align: super;
+}
+
+.logo img {
+  width: 45px;
+  height: 45px;
+  vertical-align: middle;
+}
+
+.logo b {
+  margin-left: 4px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 15px;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #000;
+  font-size: 1.2rem;
+}
+
+.user-section {
+  display: flex;
+  gap: 20px;
+  margin-right: 20px;
+  vertical-align: middle;
+}
+
+.user-section i {
+  display: block;
+  font-size: 1.5rem;
+  color: #000;
+  margin-right: 50px;
+}
+
+.drop {
+  position: relative;
+}
+
+.drop-box {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.drop-box a {
+  text-decoration: none;
+  color: #333;
+  font-size: 1rem;
+}
+
+.router {
+  text-decoration: none;
+  font-size: 1rem;
+  color: #000;
 }
 </style>
