@@ -64,7 +64,6 @@
         <div v-show="showDestinationMap" id="map-destination" class="map"></div>
       </section>
     </body>
-    <footer></footer>
   </form>
 </template>
 
@@ -120,11 +119,11 @@ export default {
           if (status === "OK" && results[0]) {
             const addressComponents = results[0].address_components;
             const city = addressComponents.find((component) =>
-              component.types.includes("locality")
+              component.types.includes("locality"),
             )?.long_name;
 
             if (city) {
-              departure.value = city; // Aktualizacja miejscowości wyjazdu
+              departure.value = city;
             }
           } else {
             console.warn("Nie udało się znaleźć miasta dla adresu: " + status);
@@ -133,7 +132,10 @@ export default {
       }
     });
 
-    // Funkcja do walidacji maksymalnej liczby miejsc
+    /**
+     * * Funkcja do walidacji maksymalnej liczby miejsc
+     */
+
     const validateMaxSeats = () => {
       if (seats.value > 8) {
         seats.value = 8;
@@ -142,7 +144,9 @@ export default {
       }
     };
 
-    // Funkcja do inicjalizacji mapy
+    /**
+     * * Funkcja do inicjalizacji mapy
+     */
     const initMap = (type) => {
       const mapElementId =
         type === "departure" ? "map-departure" : "map-destination";
@@ -152,7 +156,7 @@ export default {
       };
       const map = new google.maps.Map(
         document.getElementById(mapElementId),
-        mapOptions
+        mapOptions,
       );
       const marker = new google.maps.Marker({
         position: mapOptions.center,
@@ -177,7 +181,9 @@ export default {
         }
       });
 
-      // Dodajemy możliwość kliknięcia na mapie i pobrania adresu
+      /**
+       * * Funkcja do dodawania możliwości kliknięcia na mapie i pobrania adresu
+       */
       google.maps.event.addListener(map, "click", (event) => {
         const clickedLocation = event.latLng;
         marker.setPosition(clickedLocation);
@@ -187,7 +193,7 @@ export default {
           if (status === "OK" && results[0]) {
             const addressComponents = results[0].address_components;
             const city = addressComponents.find((component) =>
-              component.types.includes("locality")
+              component.types.includes("locality"),
             )?.long_name;
 
             if (type === "departure") {
@@ -216,25 +222,34 @@ export default {
       });
     };
 
-    // Funkcja do inicjalizacji autocomplete dla adresów
+    /**
+     * * Funkcja do inicjalizacji autocomplete dla adresów
+     * * Ogranieczenie dla Polski
+     */
     const initAutocomplete = () => {
       const options = {
-        componentRestrictions: { country: "PL" }, // Ograniczenie do Polski
+        componentRestrictions: { country: "PL" },
       };
 
-      // Inicjalizacja Autocomplete dla wyjazdu
+      /**
+       * * Inicjalizacja Autocomplete dla wyjazdu
+       */
       departureAutocomplete = new google.maps.places.Autocomplete(
         document.getElementById("departureAddressInput"),
-        options
+        options,
       );
 
-      // Inicjalizacja Autocomplete dla dojazdu
+      /**
+       * * Inicjalizacja Autocomplete dla dojazdu
+       */
       destinationAutocomplete = new google.maps.places.Autocomplete(
         document.getElementById("destinationAddressInput"),
-        options
+        options,
       );
 
-      // Wysłanie adresu do odpowiedniego pola po wybraniu sugestii
+      /**
+       * * Wysłanie adresu do odpowiedniego pola po wybraniu sugestii
+       */
       departureAutocomplete.addListener("place_changed", () => {
         const place = departureAutocomplete.getPlace();
         if (place.geometry) {
@@ -252,7 +267,9 @@ export default {
       });
     };
 
-    // Funkcja do geokodowania adresu
+    /**
+     * * Funkcja do geokodowania adresu
+     */
     const geocodeAddress = (type) => {
       const address =
         type === "departure"
@@ -270,12 +287,14 @@ export default {
             const location = results[0].geometry.location;
             const addressComponents = results[0].address_components;
             const city = addressComponents.find((component) =>
-              component.types.includes("locality")
+              component.types.includes("locality"),
             )?.long_name;
 
             if (type === "departure") {
               if (!departure.value) {
-                // Jeśli pole miejscowości jest puste, przypisze nazwę miasta
+                /**
+                 * * Jeśli pole miejscowości jest puste, przypisze nazwę miasta
+                 */
                 departure.value = city || "";
               }
               exactDeparture.value = {
@@ -294,7 +313,7 @@ export default {
           } else {
             console.warn("Nie udało się znaleźć lokalizacji: " + status);
           }
-        }
+        },
       );
     };
 
@@ -330,35 +349,45 @@ export default {
       }
     };
 
-    // Funkcja do wyświetlania mapy po kliknięciu
+    /**
+     * * Funkcja do wyświetlania mapy po kliknięciu
+     */
     const toggleMap = (type) => {
       if (type === "departure") {
         showDepartureMap.value = !showDepartureMap.value;
         if (showDepartureMap.value) {
-          // Zaktualizowanie mapy po jej wyświetleniu
+          /**
+           * * Zaktualizowanie mapy po jej wyświetleniu
+           */
           updateMap("departure");
         }
       } else {
         showDestinationMap.value = !showDestinationMap.value;
         if (showDestinationMap.value) {
-          // Zaktualizowanie mapy po jej wyświetleniu
+          /**
+           * * Zaktualizowanie mapy po jej wyświetleniu
+           */
           updateMap("destination");
         }
       }
 
-      // Dodajemy klasę do elementu mapy, aby wywołać animację
+      /**
+       * * Dodanie klasy do elementu mapy, aby wywołać animację
+       */
       const mapElement = document.getElementById(
-        type === "departure" ? "map-departure" : "map-destination"
+        type === "departure" ? "map-departure" : "map-destination",
       );
       if (mapElement) {
         mapElement.classList.toggle(
           "show",
-          showDepartureMap.value || showDestinationMap.value
+          showDepartureMap.value || showDestinationMap.value,
         );
       }
     };
 
-    // Funkcja do aktualizowania mapy
+    /**
+     * * Funkcja do aktualizowania mapy
+     */
     const updateMap = (type) => {
       const address =
         type === "departure"
@@ -395,7 +424,7 @@ export default {
           } else {
             console.warn("Nie udało się znaleźć lokalizacji: " + status);
           }
-        }
+        },
       );
     };
 
@@ -406,6 +435,11 @@ export default {
     });
 
     return {
+      validateMaxSeats,
+      updateMap,
+      geocodeAddress,
+      addRide,
+      toggleMap,
       departure,
       destination,
       exactDepartureAddress,
@@ -414,17 +448,12 @@ export default {
       exactDestination,
       dateTime,
       seats,
-      updateMap,
-      geocodeAddress,
-      addRide,
-      toggleMap,
       showDepartureMap,
       showDestinationMap,
       rideId,
       userId,
       alertMessage,
       showAlert,
-      validateMaxSeats,
     };
   },
 
@@ -436,3 +465,20 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: Arial, Helvetica, sans-serif;
+  padding: 2rem;
+}
+
+h1 {
+  text-align: center;
+  color: white;
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+}
+</style>
