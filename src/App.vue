@@ -10,18 +10,18 @@ import HeaderPage from "./components/common/HeaderPage.vue";
   <footer>
     <span class="text"
       >Zapoznaj się z naszym
-      <router-link to="/terms" class="link">Regulamin</router-link>
+      <router-link to="/terms" class="link">Regulaminem</router-link>
     </span>
     <div class="logo">
       <img src="/public/logo.png" alt="Logo" class="logo-img" />
-      <span class="logo-text"><b>GetRidehub</b></span>
+      <p>&copy; 2025 GetRidehub. Wszystkie prawa zastrzeżone.</p>
     </div>
-    <p>&copy; 2025 GetRidehub. Wszystkie prawa zastrzeżone.</p>
   </footer>
 </template>
 
 <style>
 body {
+  font-family: Arial, Helvetica, sans-serif;
   margin: 0;
 }
 footer {
@@ -43,13 +43,15 @@ footer {
 
 .link {
   color: white;
-  text-decoration: none;
+  text-decoration: underline;
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 8px;
+  font-size: 0.8rem;
+  margin-right: 10px;
 }
 
 .logo-img {

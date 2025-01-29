@@ -2,7 +2,7 @@
   <body class="terms-page">
     <div class="terms-content">
       <h1>Regulamin</h1>
-      <h3>1. Postanowienia ogólne</h3>
+      <h4>1. Postanowienia ogólne</h4>
       <p>
         1.1. Niniejszy regulamin określa zasady korzystania ze strony
         internetowej GetRideHub.
@@ -12,7 +12,7 @@
         postanowienia niniejszego regulaminu.
       </p>
 
-      <h3>2. Definicje</h3>
+      <h4>2. Definicje</h4>
       <p>
         2.1. Strona – serwis internetowy dostępny pod adresem
         https://getridehub.com.
@@ -26,7 +26,7 @@
         zarządzanie i funkcjonowanie.
       </p>
 
-      <h3>3. Warunki korzystania</h3>
+      <h4>3. Warunki korzystania</h4>
       <p>
         3.1. Użytkownik zobowiązuje się do korzystania ze Strony zgodnie z
         prawem oraz postanowieniami niniejszego regulaminu.
@@ -36,7 +36,7 @@
         trzecich lub dobre obyczaje.
       </p>
 
-      <h3>4. Rejestracja</h3>
+      <h4>4. Rejestracja</h4>
       <p>4.1. Rejestracja na Stronie jest dobrowolna i bezpłatna.</p>
       <p>
         4.2. Użytkownik zobowiązany jest do podania prawdziwych i aktualnych
@@ -47,7 +47,7 @@
         w przypadku naruszenia postanowień niniejszego regulaminu.
       </p>
 
-      <h3>5. Ochrona danych osobowych</h3>
+      <h4>5. Ochrona danych osobowych</h4>
       <p>
         5.1. Administratorem danych osobowych Użytkowników jest [Nazwa
         Firmy/Administratora].
@@ -61,7 +61,7 @@
         poprawiania lub usunięcia.
       </p>
 
-      <h3>6. Prawa autorskie</h3>
+      <h4>6. Prawa autorskie</h4>
       <p>
         6.1. Wszystkie materiały dostępne na Stronie są chronione prawem
         autorskim.
@@ -71,7 +71,7 @@
         zgody Administratora jest zabronione.
       </p>
 
-      <h3>7. Odpowiedzialność</h3>
+      <h4>7. Odpowiedzialność</h4>
       <p>
         7.1. Administrator nie ponosi odpowiedzialności za treści zamieszczane
         przez Użytkowników.
@@ -82,7 +82,7 @@
         działaniami osób trzecich.
       </p>
 
-      <h3>8. Postanowienia końcowe</h3>
+      <h4>8. Postanowienia końcowe</h4>
       <p>
         8.1. Administrator zastrzega sobie prawo do wprowadzania zmian w
         regulaminie.
@@ -157,9 +157,7 @@ export default {
   margin: 1rem auto 0 auto;
   text-align: center;
   cursor: pointer;
-  transition:
-    background-color 0.3s ease,
-    transform 0.2s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .btn-back:hover {

@@ -158,11 +158,11 @@ header {
 }
 
 .header-welcome {
-  margin-top: 150px;
+  margin-top: 60px;
 }
 
 .header-welcome h1 {
-  font-size: 5em;
+  font-size: 4em;
   color: white;
   text-shadow: 0px 0px 10px rgba(0, 0, 0, 0.8);
 }
@@ -187,9 +187,7 @@ header {
   background-color: #ffb300;
   color: black;
   cursor: pointer;
-  transition:
-    background-color 0.3s,
-    box-shadow 0.3s;
+  transition: background-color 0.3s, box-shadow 0.3s;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
   font-size: 1.1rem;
 }
