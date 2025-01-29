@@ -1,68 +1,88 @@
 <template>
   <form @submit.prevent="addRide">
+    <AlertPage
+      v-if="showAlert"
+      :message="alertMessage"
+      @close="handleAlertClose"
+    />
     <body>
-      <AlertPage
-        v-if="showAlert"
-        :message="alertMessage"
-        @close="handleAlertClose"
-      />
-      <button @click="handleAddRide">Dodaj przejazd</button>
-      <section>
-        <label for="seats">Liczba wolnych miejsc:</label>
-        <input
-          type="number"
-          v-model="seats"
-          placeholder="Podaj liczbę wolnych miejsc"
-          required
-          @input="validateMaxSeats"
-        />
-      </section>
-      <section>
-        <label for="dateTime">Data i godzina przejazdu:</label>
-        <input type="datetime-local" v-model="dateTime" required />
-      </section>
-      <section>
-        <label for="departure">Miejsce wyjazdu:</label>
-        <input
-          type="text"
-          v-model="departure"
-          placeholder="Podaj miejsce wyjazdu"
-        />
-      </section>
-      <section>
-        <label for="destination">Miejsce docelowe:</label>
-        <input
-          type="text"
-          v-model="destination"
-          placeholder="Podaj miejsce docelowe"
-        />
-      </section>
-      <section>
-        <label for="exactDepartureAddress">Dokładny adres wyjazdu:</label>
-        <input
-          type="text"
-          id="departureAddressInput"
-          v-model="exactDepartureAddress"
-          @input="updateMap('departure')"
-          placeholder="Wpisz dokładny adres wyjazdu lub zaznacz na mapie"
-          required
-        />
-        <button type="button" @click="toggleMap('departure')">Mapa</button>
-        <div v-show="showDepartureMap" id="map-departure" class="map"></div>
-      </section>
-      <section>
-        <label for="exactDestinationAddress">Dokładny adres dojazdu:</label>
-        <input
-          type="text"
-          id="destinationAddressInput"
-          v-model="exactDestinationAddress"
-          @input="updateMap('destination')"
-          placeholder="Wpisz dokładny adres dojazdu lub zaznacz na mapie"
-          required
-        />
-        <button type="button" @click="toggleMap('destination')">Mapa</button>
-        <div v-show="showDestinationMap" id="map-destination" class="map"></div>
-      </section>
+      <div class="up-content">
+        <button @click="handleAddRide">Dodaj przejazd</button>
+        <section>
+          <label for="seats">Liczba wolnych miejsc:</label>
+          <input
+            type="number"
+            v-model="seats"
+            placeholder="Podaj liczbę wolnych miejsc"
+            required
+            @input="validateMaxSeats"
+          />
+        </section>
+        <section>
+          <label for="dateTime">Data i godzina przejazdu:</label>
+          <input type="datetime-local" v-model="dateTime" required />
+        </section>
+      </div>
+      <div class="content dbl-column">
+        <section>
+          <label for="departure">Miejsce wyjazdu:</label>
+          <input
+            type="text"
+            v-model="departure"
+            placeholder="Podaj miejsce wyjazdu"
+          />
+        </section>
+        <section>
+          <label for="exactDepartureAddress">Dokładny adres wyjazdu:</label>
+          <input
+            type="text"
+            id="departureAddressInput"
+            v-model="exactDepartureAddress"
+            @input="updateMap('departure')"
+            placeholder="Wpisz dokładny adres wyjazdu lub zaznacz na mapie"
+            required
+          />
+          <button
+            type="button"
+            @click="toggleMap('departure')"
+            class="map-button"
+          >
+            Mapa
+          </button>
+          <div v-show="showDepartureMap" id="map-departure" class="map"></div>
+        </section>
+        <section>
+          <label for="destination">Miejsce docelowe:</label>
+          <input
+            type="text"
+            v-model="destination"
+            placeholder="Podaj miejsce docelowe"
+          />
+        </section>
+        <section>
+          <label for="exactDestinationAddress">Dokładny adres dojazdu:</label>
+          <input
+            type="text"
+            id="destinationAddressInput"
+            v-model="exactDestinationAddress"
+            @input="updateMap('destination')"
+            placeholder="Wpisz dokładny adres dojazdu lub zaznacz na mapie"
+            required
+          />
+          <button
+            type="button"
+            @click="toggleMap('destination')"
+            class="map-button"
+          >
+            Mapa
+          </button>
+          <div
+            v-show="showDestinationMap"
+            id="map-destination"
+            class="map"
+          ></div>
+        </section>
+      </div>
     </body>
   </form>
 </template>
@@ -472,26 +492,89 @@ form {
   justify-content: center;
   align-items: center;
   font-family: Arial, Helvetica, sans-serif;
-  padding: 2rem;
+  padding: 6rem 0 3rem 0;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="datetime-local"] {
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  margin-top: 5px;
+}
+
+label {
+  display: block;
+  font-size: 1rem;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: white;
 }
 
 button {
-  background-color: #189ab4;
+  background-color: #ffb300;
   color: white;
-  padding: 10px;
   border: none;
   border-radius: 8px;
+  padding: 1rem;
+  font-size: 1.1rem;
+  width: 110%;
   cursor: pointer;
-  font-size: 1rem;
-  width: 100%;
-  margin-top: 10px;
+  display: flex;
+  margin-bottom: 20px;
+  justify-content: center;
+  align-items: center;
+
   transition:
     background-color 0.3s ease,
     transform 0.2s ease;
 }
 
-section {
+button:hover {
+  background-color: #ffbb40;
+  transform: translateY(-3px);
+}
+
+.map-button button.active {
+  background-color: #de9b00;
+  font-weight: bold;
+}
+
+.up-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.map {
+  height: 400px;
+  width: 100%;
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  transform: translateY(100%);
+  transition: transform 0.3s ease-in-out;
+}
+
+.map.show {
+  transform: translateY(0);
+}
+
+.content {
   margin-bottom: 20px;
+  width: 100%;
+  column-count: 2;
+  gap: 250px;
+}
+
+.content.db-column {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 250px;
   width: 100%;
 }
 </style>

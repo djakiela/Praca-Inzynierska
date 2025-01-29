@@ -1,70 +1,99 @@
 <template>
-  <form @submit.prevent="addRide">
-    <body>
+  <div class="add-ride-page">
+    <form @submit.prevent="addRide">
       <AlertPage
         v-if="showAlert"
         :message="alertMessage"
         @close="handleAlertClose"
       />
-      <button @click="handleAddRide">Dodaj przejazd</button>
-      <section>
-        <label for="seats">Liczba wolnych miejsc:</label>
-        <input
-          type="number"
-          v-model="seats"
-          placeholder="Podaj liczbę wolnych miejsc"
-          required
-          @input="validateMaxSeats"
-        />
-      </section>
-      <section>
-        <label for="dateTime">Data i godzina przejazdu:</label>
-        <input type="datetime-local" v-model="dateTime" required />
-      </section>
-      <section>
-        <label for="departure">Miejsce wyjazdu:</label>
-        <input
-          type="text"
-          v-model="departure"
-          placeholder="Podaj miejsce wyjazdu"
-        />
-      </section>
-      <section>
-        <label for="destination">Miejsce docelowe:</label>
-        <input
-          type="text"
-          v-model="destination"
-          placeholder="Podaj miejsce docelowe"
-        />
-      </section>
-      <section>
-        <label for="exactDepartureAddress">Dokładny adres wyjazdu:</label>
-        <input
-          type="text"
-          id="departureAddressInput"
-          v-model="exactDepartureAddress"
-          @input="updateMap('departure')"
-          placeholder="Wpisz dokładny adres wyjazdu lub zaznacz na mapie"
-          required
-        />
-        <button type="button" @click="toggleMap('departure')">Mapa</button>
-        <div v-show="showDepartureMap" id="map-departure" class="map"></div>
-      </section>
-      <section>
-        <label for="exactDestinationAddress">Dokładny adres dojazdu:</label>
-        <input
-          type="text"
-          id="destinationAddressInput"
-          v-model="exactDestinationAddress"
-          @input="updateMap('destination')"
-          placeholder="Wpisz dokładny adres dojazdu lub zaznacz na mapie"
-          required
-        />
-        <button type="button" @click="toggleMap('destination')">Mapa</button>
-        <div v-show="showDestinationMap" id="map-destination" class="map"></div>
-      </section>
-    </body>
-  </form>
+      <div>
+        <!-- Sekcja Liczba wolnych miejsc oraz Data -->
+        <div class="short-center">
+          <div class="form-group short">
+            <!-- Przycisk dodania przejazdu -->
+            <button type="submit" class="submit-btn">Dodaj Przejazd</button>
+            <div class="form-group">
+              <label for="seats">Liczba wolnych miejsc:</label>
+              <input
+                type="number"
+                v-model="seats"
+                placeholder="Podaj liczbę wolnych miejsc"
+                required
+                @input="validateMaxSeats"
+              />
+            </div>
+            <div class="form-group">
+              <label for="dateTime">Data i godzina przejazdu:</label>
+              <input type="datetime-local" v-model="dateTime" required />
+            </div>
+          </div>
+        </div>
+
+        <!-- Sekcja miejscowości wyjazdu i dojazdu oraz mapy -->
+        <div class="form-group double-column">
+          <!-- Miejscowość wyjazdu -->
+          <div class="form-group">
+            <label for="departure">Miejscowość wyjazdu:</label>
+            <input
+              type="text"
+              v-model="departure"
+              placeholder="Wpisz miejscowość wyjazdu"
+              required
+            />
+          </div>
+
+          <!-- Miejscowość dojazdu -->
+          <div class="form-group">
+            <label for="destination">Miejscowość dojazdu:</label>
+            <input
+              type="text"
+              v-model="destination"
+              placeholder="Wpisz miejscowość dojazdu"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Dokładny adres wyjazdu i dojazdu oraz mapy -->
+        <div class="form-group double-column">
+          <div class="form-group">
+            <label for="exactDepartureAddress">Dokładny adres wyjazdu:</label>
+            <input
+              type="text"
+              id="departureAddressInput"
+              v-model="exactDepartureAddress"
+              @input="updateMap('departure')"
+              placeholder="Wpisz dokładny adres wyjazdu lub zaznacz na mapie"
+              required
+            />
+            <button type="button" @click="toggleMap('departure')">
+              Pokaż mapę
+            </button>
+            <div v-show="showDepartureMap" id="map-departure" class="map"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="exactDestinationAddress">Dokładny adres dojazdu:</label>
+            <input
+              type="text"
+              id="destinationAddressInput"
+              v-model="exactDestinationAddress"
+              @input="updateMap('destination')"
+              placeholder="Wpisz dokładny adres dojazdu lub zaznacz na mapie"
+            />
+            <button type="button" @click="toggleMap('destination')">
+              Pokaż mapę
+            </button>
+            <div
+              v-show="showDestinationMap"
+              id="map-destination"
+              class="map"
+            ></div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
 </template>
 
 <script>
@@ -123,7 +152,7 @@ export default {
             )?.long_name;
 
             if (city) {
-              departure.value = city;
+              departure.value = city; // Aktualizacja miejscowości wyjazdu
             }
           } else {
             console.warn("Nie udało się znaleźć miasta dla adresu: " + status);
@@ -132,10 +161,7 @@ export default {
       }
     });
 
-    /**
-     * * Funkcja do walidacji maksymalnej liczby miejsc
-     */
-
+    // Funkcja do walidacji maksymalnej liczby miejsc
     const validateMaxSeats = () => {
       if (seats.value > 8) {
         seats.value = 8;
@@ -144,9 +170,7 @@ export default {
       }
     };
 
-    /**
-     * * Funkcja do inicjalizacji mapy
-     */
+    // Funkcja do inicjalizacji mapy
     const initMap = (type) => {
       const mapElementId =
         type === "departure" ? "map-departure" : "map-destination";
@@ -181,9 +205,7 @@ export default {
         }
       });
 
-      /**
-       * * Funkcja do dodawania możliwości kliknięcia na mapie i pobrania adresu
-       */
+      // Dodajemy możliwość kliknięcia na mapie i pobrania adresu
       google.maps.event.addListener(map, "click", (event) => {
         const clickedLocation = event.latLng;
         marker.setPosition(clickedLocation);
@@ -222,34 +244,25 @@ export default {
       });
     };
 
-    /**
-     * * Funkcja do inicjalizacji autocomplete dla adresów
-     * * Ogranieczenie dla Polski
-     */
+    // Funkcja do inicjalizacji autocomplete dla adresów
     const initAutocomplete = () => {
       const options = {
-        componentRestrictions: { country: "PL" },
+        componentRestrictions: { country: "PL" }, // Ograniczenie do Polski
       };
 
-      /**
-       * * Inicjalizacja Autocomplete dla wyjazdu
-       */
+      // Inicjalizacja Autocomplete dla wyjazdu
       departureAutocomplete = new google.maps.places.Autocomplete(
         document.getElementById("departureAddressInput"),
         options,
       );
 
-      /**
-       * * Inicjalizacja Autocomplete dla dojazdu
-       */
+      // Inicjalizacja Autocomplete dla dojazdu
       destinationAutocomplete = new google.maps.places.Autocomplete(
         document.getElementById("destinationAddressInput"),
         options,
       );
 
-      /**
-       * * Wysłanie adresu do odpowiedniego pola po wybraniu sugestii
-       */
+      // Wysłanie adresu do odpowiedniego pola po wybraniu sugestii
       departureAutocomplete.addListener("place_changed", () => {
         const place = departureAutocomplete.getPlace();
         if (place.geometry) {
@@ -267,9 +280,7 @@ export default {
       });
     };
 
-    /**
-     * * Funkcja do geokodowania adresu
-     */
+    // Funkcja do geokodowania adresu
     const geocodeAddress = (type) => {
       const address =
         type === "departure"
@@ -292,9 +303,7 @@ export default {
 
             if (type === "departure") {
               if (!departure.value) {
-                /**
-                 * * Jeśli pole miejscowości jest puste, przypisze nazwę miasta
-                 */
+                // Jeśli pole miejscowości jest puste, przypisze nazwę miasta
                 departure.value = city || "";
               }
               exactDeparture.value = {
@@ -349,31 +358,23 @@ export default {
       }
     };
 
-    /**
-     * * Funkcja do wyświetlania mapy po kliknięciu
-     */
+    // Funkcja do wyświetlania mapy po kliknięciu
     const toggleMap = (type) => {
       if (type === "departure") {
         showDepartureMap.value = !showDepartureMap.value;
         if (showDepartureMap.value) {
-          /**
-           * * Zaktualizowanie mapy po jej wyświetleniu
-           */
+          // Zaktualizowanie mapy po jej wyświetleniu
           updateMap("departure");
         }
       } else {
         showDestinationMap.value = !showDestinationMap.value;
         if (showDestinationMap.value) {
-          /**
-           * * Zaktualizowanie mapy po jej wyświetleniu
-           */
+          // Zaktualizowanie mapy po jej wyświetleniu
           updateMap("destination");
         }
       }
 
-      /**
-       * * Dodanie klasy do elementu mapy, aby wywołać animację
-       */
+      // Dodajemy klasę do elementu mapy, aby wywołać animację
       const mapElement = document.getElementById(
         type === "departure" ? "map-departure" : "map-destination",
       );
@@ -385,9 +386,7 @@ export default {
       }
     };
 
-    /**
-     * * Funkcja do aktualizowania mapy
-     */
+    // Funkcja do aktualizowania mapy
     const updateMap = (type) => {
       const address =
         type === "departure"
@@ -435,11 +434,6 @@ export default {
     });
 
     return {
-      validateMaxSeats,
-      updateMap,
-      geocodeAddress,
-      addRide,
-      toggleMap,
       departure,
       destination,
       exactDepartureAddress,
@@ -448,12 +442,17 @@ export default {
       exactDestination,
       dateTime,
       seats,
+      updateMap,
+      geocodeAddress,
+      addRide,
+      toggleMap,
       showDepartureMap,
       showDestinationMap,
       rideId,
       userId,
       alertMessage,
       showAlert,
+      validateMaxSeats,
     };
   },
 
@@ -467,18 +466,32 @@ export default {
 </script>
 
 <style scoped>
-form {
+.form-group {
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.form-group.short {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: Arial, Helvetica, sans-serif;
-  padding: 2rem;
+  flex-direction: column;
+  margin-bottom: 30px;
+  width: 16%;
 }
 
-h1 {
-  text-align: center;
-  color: white;
-  font-size: 2.5rem;
-  margin-bottom: 2rem;
+.form-group.double-column {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 250px;
+
+  width: 100%;
+}
+
+.short-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
 </style>
