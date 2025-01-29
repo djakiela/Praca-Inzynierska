@@ -1,9 +1,9 @@
 <template>
-  <div v-if="visible" class="alert-overlay">
-    <div class="alert-box">
+  <body v-if="visible" class="alert">
+    <section class="alert-box">
       <p v-html="message"></p>
-    </div>
-  </div>
+    </section>
+  </body>
 </template>
 
 <script>
@@ -29,7 +29,7 @@ export default {
 </script>
 
 <style scoped>
-.alert-overlay {
+.alert {
   position: fixed;
   font-family: Arial, Helvetica, sans-serif;
   top: 0;

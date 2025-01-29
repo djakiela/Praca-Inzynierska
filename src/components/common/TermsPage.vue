@@ -1,8 +1,8 @@
 <template>
-  <div class="terms-page">
-    <div class="terms-card">
+  <body class="terms-page">
+    <div class="terms-content">
       <h1>Regulamin</h1>
-      <p>1. Postanowienia ogólne</p>
+      <h3>1. Postanowienia ogólne</h3>
       <p>
         1.1. Niniejszy regulamin określa zasady korzystania ze strony
         internetowej GetRideHub.
@@ -12,7 +12,7 @@
         postanowienia niniejszego regulaminu.
       </p>
 
-      <p>2. Definicje</p>
+      <h3>2. Definicje</h3>
       <p>
         2.1. Strona – serwis internetowy dostępny pod adresem
         https://getridehub.com.
@@ -26,7 +26,7 @@
         zarządzanie i funkcjonowanie.
       </p>
 
-      <p>3. Warunki korzystania</p>
+      <h3>3. Warunki korzystania</h3>
       <p>
         3.1. Użytkownik zobowiązuje się do korzystania ze Strony zgodnie z
         prawem oraz postanowieniami niniejszego regulaminu.
@@ -36,7 +36,7 @@
         trzecich lub dobre obyczaje.
       </p>
 
-      <p>4. Rejestracja</p>
+      <h3>4. Rejestracja</h3>
       <p>4.1. Rejestracja na Stronie jest dobrowolna i bezpłatna.</p>
       <p>
         4.2. Użytkownik zobowiązany jest do podania prawdziwych i aktualnych
@@ -47,7 +47,7 @@
         w przypadku naruszenia postanowień niniejszego regulaminu.
       </p>
 
-      <p>5. Ochrona danych osobowych</p>
+      <h3>5. Ochrona danych osobowych</h3>
       <p>
         5.1. Administratorem danych osobowych Użytkowników jest [Nazwa
         Firmy/Administratora].
@@ -61,7 +61,7 @@
         poprawiania lub usunięcia.
       </p>
 
-      <p>6. Prawa autorskie</p>
+      <h3>6. Prawa autorskie</h3>
       <p>
         6.1. Wszystkie materiały dostępne na Stronie są chronione prawem
         autorskim.
@@ -71,7 +71,7 @@
         zgody Administratora jest zabronione.
       </p>
 
-      <p>7. Odpowiedzialność</p>
+      <h3>7. Odpowiedzialność</h3>
       <p>
         7.1. Administrator nie ponosi odpowiedzialności za treści zamieszczane
         przez Użytkowników.
@@ -82,7 +82,7 @@
         działaniami osób trzecich.
       </p>
 
-      <p>8. Postanowienia końcowe</p>
+      <h3>8. Postanowienia końcowe</h3>
       <p>
         8.1. Administrator zastrzega sobie prawo do wprowadzania zmian w
         regulaminie.
@@ -95,8 +95,8 @@
         8.3. W sprawach nieuregulowanych niniejszym regulaminem zastosowanie
         mają przepisy prawa polskiego.
       </p>
-      <div class="buttons">
-        <router-link to="/" class="btn-link"
+      <section class="buttons">
+        <router-link to="/?scrollTo=HomePage" class="btn-link"
           ><button class="btn-back">
             Powrót do strony głównej
           </button></router-link
@@ -104,9 +104,9 @@
         <router-link to="/register" class="btn-link"
           ><button class="btn-back">Powrót do rejestracji</button></router-link
         >
-      </div>
+      </section>
     </div>
-  </div>
+  </body>
 </template>
 
 <script>
@@ -125,7 +125,7 @@ export default {
   padding: 20px;
 }
 
-.terms-card {
+.terms-content {
   background-color: white;
   padding: 2rem;
   border-radius: 15px;
@@ -157,7 +157,9 @@ export default {
   margin: 1rem auto 0 auto;
   text-align: center;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition:
+    background-color 0.3s ease,
+    transform 0.2s ease;
 }
 
 .btn-back:hover {

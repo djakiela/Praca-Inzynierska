@@ -2,8 +2,8 @@
   <body id="HomePage">
     <div class="container">
       <header>
-        <div id="home" class="header-welcome">
-          <h1>Witamy na naszej stronie!</h1>
+        <div class="header-welcome">
+          <h1>Witamy na stronie GetRideHub</h1>
           <p>Znajdź przejazd, dodaj swoją trasę i podróżuj wygodnie.</p>
         </div>
         <div class="activeSection">
@@ -71,7 +71,7 @@
         </div>
       </header>
       <main>
-        <section id="rides-list">
+        <section id="rides-list" class="ride-list">
           <FilterCom />
           <RideList />
         </section>
@@ -126,6 +126,29 @@ export default {
 </script>
 
 <style scoped>
+section {
+  display: flex;
+  align-items: flex-start;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  color: #ffffff;
+}
+
+header {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  color: #ffffff;
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+}
+
 .container {
   display: flex;
   flex-direction: column;
@@ -139,38 +162,15 @@ export default {
 }
 
 .header-welcome h1 {
-  font-size: 3em;
+  font-size: 5em;
   color: white;
-  text-shadow: 0px 0px 10px rgba(0, 0, 0, 0.8); /* Czarna poświata */
+  text-shadow: 0px 0px 10px rgba(0, 0, 0, 0.8);
 }
 
 .header-welcome p {
-  font-size: 1.5em;
+  font-size: 2em;
   color: white;
-  text-shadow: 0px 0px 8px rgba(0, 0, 0, 0.8); /* Czarna poświata */
-}
-
-section {
-  display: flex;
-  align-items: flex-start;
-}
-
-body {
-  font-family: Arial, sans-serif;
-  line-height: 1.6;
-  margin: 0;
-  padding: 0;
-  color: #ffffff; /* Biały tekst */
-}
-
-header {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  color: #ffffff; /* Biały tekst */
-  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+  text-shadow: 0px 0px 8px rgba(0, 0, 0, 0.8);
 }
 
 .buttons-header {
@@ -181,37 +181,47 @@ header {
 }
 
 .buttons-header button {
-  padding: 10px 20px;
+  padding: 20px 30px;
   border: none;
   border-radius: 5px;
-  background-color: #ffc300; /* Żółty */
-  color: #000000; /* Czarny tekst */
+  background-color: #ffb300;
+  color: black;
   cursor: pointer;
   transition:
     background-color 0.3s,
     box-shadow 0.3s;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+  font-size: 1.1rem;
 }
 
 .buttons-header button:hover {
-  background-color: #ffd700; /* Jaśniejszy żółty */
+  background-color: #ffbb40;
 }
 
 .buttons-header button.active {
-  background-color: #ffb000; /* Mocny żółty */
+  background-color: #de9b00;
   font-weight: bold;
 }
 
 .content-section {
-  background: rgba(51, 51, 51, 0.9); /* Ciemny szary */
+  background: rgba(51, 51, 51, 0.9);
   color: #ffffff;
   border-radius: 10px;
   text-align: left;
   padding: 10px;
+  font-size: 1.2rem;
+  margin-top: 35px;
 }
 
 .content-section h2,
 p {
   text-align: center;
+}
+
+.ride-list {
+  display: flex;
+  align-items: flex-start;
+  gap: 1px;
+  margin-left: 100px;
 }
 </style>

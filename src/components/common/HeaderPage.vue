@@ -13,7 +13,7 @@
       </section>
       <section class="user-section">
         <router-link
-          v-if="isLoggedIn && isAdmin"
+          v-if="isLogged && isAdmin"
           to="/admin-dashboard"
           class="router"
         >
@@ -21,7 +21,7 @@
         </router-link>
 
         <div
-          v-if="isLoggedIn"
+          v-if="isLogged"
           @mouseenter="showUserDropdown"
           @mouseleave="hideUserDropdown"
           class="drop"
@@ -34,7 +34,6 @@
           </div>
         </div>
 
-        <!-- DropDown Icona -->
         <div
           @mouseenter="showProfileDropdown"
           @mouseleave="hideProfileDropdown"
@@ -42,7 +41,7 @@
         >
           <router-link to="/login"> <i class="fas fa-user"></i></router-link>
           <div
-            v-if="isLoggedIn"
+            v-if="isLogged"
             v-show="isProfileDropdownActive"
             class="drop-box fas-box"
           >
@@ -66,7 +65,7 @@ export default {
   setup() {
     const isUserDropdownActive = ref(false);
     const isProfileDropdownActive = ref(false);
-    const isLoggedIn = ref(false);
+    const isLogged = ref(false);
     const isAdmin = ref(false);
     const router = useRouter();
 
@@ -89,7 +88,7 @@ export default {
     const logout = async () => {
       const auth = getAuth();
       await signOut(auth);
-      isLoggedIn.value = false;
+      isLogged.value = false;
       isAdmin.value = false;
       router.push("/login");
     };
@@ -99,13 +98,13 @@ export default {
       const db = getFirestore();
       auth.onAuthStateChanged(async (user) => {
         if (user) {
-          isLoggedIn.value = true;
+          isLogged.value = true;
           const docRef = doc(db, "roles", user.uid);
           const docSnap = await getDoc(docRef);
 
           isAdmin.value = docSnap.exists() && docSnap.data().role === "admin";
         } else {
-          isLoggedIn.value = false;
+          isLogged.value = false;
           isAdmin.value = false;
         }
       });
@@ -114,7 +113,7 @@ export default {
     return {
       isUserDropdownActive,
       isProfileDropdownActive,
-      isLoggedIn,
+      isLogged,
       isAdmin,
       showUserDropdown,
       hideUserDropdown,
@@ -191,7 +190,7 @@ main {
   display: block;
   font-size: 1.5rem;
   color: #000;
-  margin-right: 50px;
+  margin-right: 30px;
 }
 
 .drop {

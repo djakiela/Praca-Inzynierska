@@ -1,10 +1,10 @@
 <template>
-  <div v-if="visible" class="alert-overlay">
-    <div class="alert-box">
+  <body v-if="visible" class="alert">
+    <section class="alert-box">
       <p>{{ message }}</p>
       <button @click="closeAlert">OK</button>
-    </div>
-  </div>
+    </section>
+  </body>
 </template>
 
 <script>
@@ -30,7 +30,7 @@ export default {
 </script>
 
 <style scoped>
-.alert-overlay {
+.alert {
   position: fixed;
   font-family: Arial, Helvetica, sans-serif;
   top: 0;
@@ -47,7 +47,9 @@ export default {
   padding: 20px;
   border-radius: 5px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition:
+    background-color 0.3s ease,
+    transform 0.2s ease;
   text-align: center;
 }
 

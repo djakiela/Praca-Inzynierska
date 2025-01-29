@@ -209,15 +209,15 @@ export default {
               if (status === "OK") {
                 directionsRenderer.setDirections(response);
                 console.log(
-                  `Trasa dla przejazdu ${rideId} została pomyślnie wyznaczona.`
+                  `Trasa dla przejazdu ${rideId} została pomyślnie wyznaczona.`,
                 );
               } else {
                 console.error(
                   `Błąd podczas wyznaczania trasy dla przejazdu ${rideId}:`,
-                  status
+                  status,
                 );
               }
-            }
+            },
           );
         } else {
           console.error("Przejazd o podanym ID nie został znaleziony.");
@@ -237,7 +237,7 @@ export default {
     };
 
     const totalPages = computed(() =>
-      Math.ceil(rides.value.length / itemsPerPage)
+      Math.ceil(rides.value.length / itemsPerPage),
     );
 
     const paginatedRides = computed(() => {
@@ -309,14 +309,14 @@ export default {
     const fetchUserReservations = async () => {
       const q = query(
         collection(db, "reservations"),
-        where("userId", "==", currentUser.uid)
+        where("userId", "==", currentUser.uid),
       );
       const querySnapshot = await getDocs(q);
 
       querySnapshot.forEach((doc) => {
         const reservation = doc.data();
         const rideIndex = rides.value.findIndex(
-          (ride) => ride.id === reservation.rideId
+          (ride) => ride.id === reservation.rideId,
         );
         if (rideIndex !== -1) {
           reservationStatus.value[rideIndex] = true;
@@ -342,7 +342,7 @@ export default {
                 rideId,
                 userId: currentUser.uid,
                 seats: reservedSeats,
-              }
+              },
             );
 
             rides.value[index].seats -= reservedSeats;
@@ -366,7 +366,7 @@ export default {
           await updateDoc(rideRef, { seats: currentSeats + reservedSeats });
 
           await deleteDoc(
-            doc(db, "reservations", `${currentUser.uid}_${rideId}`)
+            doc(db, "reservations", `${currentUser.uid}_${rideId}`),
           );
 
           rides.value[index].seats += reservedSeats;
@@ -384,9 +384,8 @@ export default {
 
     const validateSeats = (index, availableSeats) => {
       if (reservationSeats.value[index] > availableSeats) {
-        validationErrors.value[
-          index
-        ] = `Nie można zarezerwować więcej niż ${availableSeats} miejsc.`;
+        validationErrors.value[index] =
+          `Nie można zarezerwować więcej niż ${availableSeats} miejsc.`;
         reservationSeats.value[index] = availableSeats;
       } else if (reservationSeats.value[index] < 1) {
         validationErrors.value[index] =
@@ -521,7 +520,9 @@ button {
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition:
+    background-color 0.3s ease,
+    transform 0.2s ease;
 }
 
 button:hover {
@@ -581,7 +582,9 @@ button:nth-of-type(2):hover {
   font-size: 1rem;
   color: #54626f;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition:
+    background-color 0.3s ease,
+    transform 0.2s ease;
 }
 
 .pagination button:hover {
