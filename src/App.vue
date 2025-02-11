@@ -13,7 +13,7 @@ import HeaderPage from "./components/common/HeaderPage.vue";
       <router-link to="/terms" class="link">Regulaminem</router-link>
     </span>
     <div class="logo">
-      <img src="/public/logo.png" alt="Logo" class="logo-img" />
+      <img src="/public/logo.svg" alt="Logo" class="logo-img" />
       <p>&copy; 2025 GetRidehub. Wszystkie prawa zastrzeżone.</p>
     </div>
   </footer>

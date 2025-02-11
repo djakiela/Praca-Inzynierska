@@ -1,6 +1,6 @@
 <template>
-  <div class="page">
-    <div class="my-reservations">
+  <body class="page">
+    <section class="reservation">
       <h1>Twoje rezerwacje</h1>
       <div v-if="loading" class="loading">Ładowanie...</div>
       <div v-if="error" class="error">{{ error }}</div>
@@ -9,7 +9,7 @@
       </div>
 
       <ul v-if="rides.length > 0">
-        <li v-for="(ride, index) in rides" :key="ride.id" class="ride-item">
+        <li v-for="(ride, index) in rides" :key="ride.id" class="conent">
           <h2>Przejazd: {{ ride.departure }} → {{ ride.destination }}</h2>
           <p><strong>Data:</strong> {{ formatDate(ride.dateTime) }}</p>
           <p>
@@ -38,7 +38,6 @@
               {{ mapVisibility[index] ? "Ukryj mapę" : "Wizualizacja trasy" }}
             </button>
           </div>
-          <!-- Box z mapą -->
           <div
             v-if="mapVisibility[index]"
             :id="'map-container-' + ride.id"
@@ -46,8 +45,8 @@
           ></div>
         </li>
       </ul>
-    </div>
-  </div>
+    </section>
+  </body>
 </template>
 
 <script>
@@ -65,7 +64,6 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-
 
 export default {
   name: "MyReservation",
@@ -90,7 +88,7 @@ export default {
         // Pobierz rezerwacje użytkownika
         const reservationQuery = query(
           collection(db, "reservations"),
-          where("userId", "==", currentUser.uid)
+          where("userId", "==", currentUser.uid),
         );
         const reservationDocs = await getDocs(reservationQuery);
 
@@ -119,7 +117,7 @@ export default {
 
         // Pobierz dane użytkowników, w tym numery telefonów
         const userPromises = Array.from(userIds).map((userId) =>
-          getDoc(doc(db, "users", userId))
+          getDoc(doc(db, "users", userId)),
         );
         const userDocs = await Promise.all(userPromises);
 
@@ -149,7 +147,7 @@ export default {
           await updateDoc(rideRef, { seats: currentSeats + reservedSeats });
 
           await deleteDoc(
-            doc(db, "reservations", reservations.value[index].id)
+            doc(db, "reservations", reservations.value[index].id),
           );
 
           rides.value.splice(index, 1);
@@ -212,15 +210,15 @@ export default {
               if (status === "OK") {
                 directionsRenderer.setDirections(response);
                 console.log(
-                  `Trasa dla przejazdu ${rideId} została pomyślnie wyznaczona.`
+                  `Trasa dla przejazdu ${rideId} została pomyślnie wyznaczona.`,
                 );
               } else {
                 console.error(
                   `Błąd podczas wyznaczania trasy dla przejazdu ${rideId}:`,
-                  status
+                  status,
                 );
               }
-            }
+            },
           );
         } else {
           console.error("Przejazd o podanym ID nie został znaleziony.");
@@ -262,23 +260,27 @@ export default {
 .page {
   min-height: 100vh;
   padding-top: 60px;
+  padding-bottom: 30px;
   align-items: center;
-  background: linear-gradient(150deg, #05445e, #189ab4, #d4f1f4);
+  background-color: #222;
+  color: white;
 }
 
-.my-reservations {
+.reservation {
   font-family: Arial, Helvetica, sans-serif;
   padding: 20px;
   max-width: 800px;
   margin: 0 auto;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: rgba(51, 51, 51, 0.9);
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  margin-top: 30px;
 }
 
 h1 {
   text-align: center;
-  color: #333;
+  color: white;
+  text-shadow: 0px 0px 10px rgba(0, 0, 0, 0.8);
 }
 
 .loading {
@@ -293,64 +295,120 @@ h1 {
 
 .no-rides {
   text-align: center;
-  color: #555;
+  color: #ccc;
 }
-
 ul {
   list-style-type: none;
   padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column; /* Zapobiega podziałowi na kolumny */
+  gap: 15px; /* Dodaje odstępy między rezerwacjami */
 }
 
-.ride-item {
-  background-color: white;
-  border: 1px solid #ddd;
+.conent {
+  background: rgba(34, 34, 34, 0.9);
   padding: 15px;
-  margin-bottom: 10px;
-  border-radius: 5px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.ride-item h2 {
+.conent h2 {
   margin: 0 0 10px;
-  color: #007bff;
+  color: #ffb300;
+  text-shadow: 0px 0px 8px rgba(255, 179, 0, 0.8);
 }
 
-.ride-item p {
+.conent p {
   margin: 5px 0;
-  color: #555;
+  color: #ddd;
 }
 
-.ride-item strong {
-  color: #333;
+.conent strong {
+  color: #ffbb40;
 }
 
 button {
-  margin-top: 10px;
-  padding: 10px;
+  padding: 15px 25px;
   border: none;
-  background-color: #189ab4;
-  color: white;
   border-radius: 5px;
+  background-color: #ffb300;
+  color: black;
+  font-size: 1.1rem;
+  font-weight: bold;
   cursor: pointer;
+  transition:
+    background-color 0.3s,
+    transform 0.2s,
+    box-shadow 0.3s;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 button:hover {
-  background-color: #007bff;
+  background-color: #ffbb40;
 }
 
-.details {
+button:active {
+  background-color: #de9b00;
+  transform: scale(0.95);
+}
+
+.actions {
   margin-top: 10px;
-  padding: 10px;
-  border-top: 1px solid #ddd;
-  color: #444;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+button.primary {
+  background-color: #ff9f00;
+}
+
+button.primary:hover {
+  background-color: #ffae40;
+}
+
+button.primary:active {
+  background-color: #d98b00;
+}
+
+button.secondary {
+  background-color: #ffcc66;
+  color: black;
+}
+
+button.secondary:hover {
+  background-color: #ffdb8a;
+}
+
+button.secondary:active {
+  background-color: #e6b354;
+}
+
+.actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+section {
+  display: flex;
+  align-items: flex-start;
+}
+
+.ride-list {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-left: 50px;
 }
 
 .map-container {
-  width: 100%;
-  height: 400px;
-  margin-top: 20px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  height: 300px;
+  margin-top: 10px;
+  border: 1px solid #333;
+  border-radius: 5px;
 }
 </style>

@@ -3,7 +3,7 @@
     <div v-if="editingRideId">
       <EditRide :rideId="editingRideId" @close="closeEditor" />
     </div>
-    <div v-else class="my-rides">
+    <div v-else class="rides">
       <h1>Twoje dodane przejazdy</h1>
       <div v-if="loading" class="loading">Ładowanie...</div>
       <div v-if="error" class="error">{{ error }}</div>
@@ -12,7 +12,7 @@
       </div>
 
       <ul v-if="rides.length > 0">
-        <li v-for="ride in rides" :key="ride.id" class="ride-item">
+        <li v-for="ride in rides" :key="ride.id" class="conent">
           <h2>Przejazd: {{ ride.departure }} → {{ ride.destination }}</h2>
           <p><strong>Data:</strong> {{ formatDate(ride.dateTime) }}</p>
           <p><strong>Wolne miejsca:</strong> {{ ride.seats }}</p>
@@ -195,25 +195,31 @@ export default {
 </script>
 
 <style scoped>
+/* Ogólny styl strony */
 .page {
   min-height: 100vh;
   padding-top: 60px;
+  padding-bottom: 30px;
   align-items: center;
+  background-color: #222; /* Ciemne tło */
+  color: white;
 }
 
-.my-rides {
+.rides {
   font-family: Arial, Helvetica, sans-serif;
   padding: 20px;
   max-width: 800px;
   margin: 0 auto;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: rgba(51, 51, 51, 0.9); /* Przejrzyste, eleganckie tło */
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  margin-top: 30px;
 }
 
 h1 {
   text-align: center;
-  color: #333;
+  color: white;
+  text-shadow: 0px 0px 10px rgba(0, 0, 0, 0.8);
 }
 
 .loading {
@@ -228,52 +234,117 @@ h1 {
 
 .no-rides {
   text-align: center;
-  color: #555;
+  color: #ccc;
 }
 
+/* Styl listy */
 ul {
   list-style-type: none;
   padding: 0;
 }
 
-.ride-item {
-  background-color: white;
-  border: 1px solid #ddd;
+/* Karta przejazdu */
+.conent {
+  background: rgba(34, 34, 34, 0.9); /* Spójny z całą stroną */
   padding: 15px;
-  margin-bottom: 10px;
-  border-radius: 5px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.ride-item h2 {
+.conent h2 {
   margin: 0 0 10px;
-  color: #007bff;
+  color: #ffb300;
+  text-shadow: 0px 0px 8px rgba(255, 179, 0, 0.8);
 }
 
-.ride-item p {
+.conent p {
   margin: 5px 0;
-  color: #555;
+  color: #ddd;
 }
 
-.ride-item strong {
-  color: #333;
+.conent strong {
+  color: #ffbb40;
 }
 
 button {
-  margin: 5px;
-  padding: 10px;
+  padding: 15px 25px;
   border: none;
-  background-color: #189ab4;
-  color: white;
   border-radius: 5px;
+  background-color: #ffb300; /* Kolor jak w headerze */
+  color: black;
+  font-size: 1.1rem;
+  font-weight: bold;
   cursor: pointer;
+  transition:
+    background-color 0.3s,
+    transform 0.2s,
+    box-shadow 0.3s;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 button:hover {
-  background-color: #007bff;
+  background-color: #ffbb40;
 }
 
+button:active {
+  background-color: #de9b00;
+  transform: scale(0.95);
+}
+
+/* Przyciski w sekcji akcji */
 .actions {
   margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Alternatywny styl dla ważniejszych przycisków */
+button.primary {
+  background-color: #ff9f00;
+}
+
+button.primary:hover {
+  background-color: #ffae40;
+}
+
+button.primary:active {
+  background-color: #d98b00;
+}
+
+/* Przyciski drugorzędne */
+button.secondary {
+  background-color: #ffcc66;
+  color: black;
+}
+
+button.secondary:hover {
+  background-color: #ffdb8a;
+}
+
+button.secondary:active {
+  background-color: #e6b354;
+}
+
+/* Sekcja działań */
+.actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Ulepszone wyrównanie i przestrzeń */
+section {
+  display: flex;
+  align-items: flex-start;
+}
+
+.ride-list {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-left: 50px;
 }
 </style>
