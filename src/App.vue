@@ -23,6 +23,7 @@ import HeaderPage from "./components/common/HeaderPage.vue";
 body {
   font-family: Arial, Helvetica, sans-serif;
   margin: 0;
+  padding: 0;
 }
 footer {
   background-color: #333;

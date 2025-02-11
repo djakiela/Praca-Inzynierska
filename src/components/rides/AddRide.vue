@@ -1,90 +1,116 @@
 <template>
-  <form @submit.prevent="addRide">
-    <AlertPage
-      v-if="showAlert"
-      :message="alertMessage"
-      @close="handleAlertClose"
-    />
-    <body>
-      <div class="up-content">
-        <button @click="handleAddRide">Dodaj przejazd</button>
-        <section>
-          <label for="seats">Liczba wolnych miejsc:</label>
-          <input
-            type="number"
-            v-model="seats"
-            placeholder="Podaj liczbę wolnych miejsc"
-            required
-            @input="validateMaxSeats"
-          />
-        </section>
-        <section>
-          <label for="dateTime">Data i godzina przejazdu:</label>
-          <input type="datetime-local" v-model="dateTime" required />
-        </section>
-      </div>
-      <div class="content dbl-column">
-        <section>
-          <label for="departure">Miejsce wyjazdu:</label>
-          <input
-            type="text"
-            v-model="departure"
-            placeholder="Podaj miejsce wyjazdu"
-          />
-        </section>
-        <section>
-          <label for="exactDepartureAddress">Dokładny adres wyjazdu:</label>
-          <input
-            type="text"
-            id="departureAddressInput"
-            v-model="exactDepartureAddress"
-            @input="updateMap('departure')"
-            placeholder="Wpisz dokładny adres wyjazdu lub zaznacz na mapie"
-            required
-          />
-          <button
-            type="button"
-            @click="toggleMap('departure')"
-            class="map-button"
-          >
-            Mapa
-          </button>
-          <div v-show="showDepartureMap" id="map-departure" class="map"></div>
-        </section>
-        <section>
-          <label for="destination">Miejsce docelowe:</label>
-          <input
-            type="text"
-            v-model="destination"
-            placeholder="Podaj miejsce docelowe"
-          />
-        </section>
-        <section>
-          <label for="exactDestinationAddress">Dokładny adres dojazdu:</label>
-          <input
-            type="text"
-            id="destinationAddressInput"
-            v-model="exactDestinationAddress"
-            @input="updateMap('destination')"
-            placeholder="Wpisz dokładny adres dojazdu lub zaznacz na mapie"
-            required
-          />
-          <button
-            type="button"
-            @click="toggleMap('destination')"
-            class="map-button"
-          >
-            Mapa
-          </button>
-          <div
-            v-show="showDestinationMap"
-            id="map-destination"
-            class="map"
-          ></div>
-        </section>
-      </div>
-    </body>
-  </form>
+  <body class="temp-container">
+    <div @submit.prevent="addRide" class="container">
+      <AlertPage
+        v-if="showAlert"
+        :message="alertMessage"
+        @close="handleAlertClose"
+      />
+      <form>
+        <div class="up-content">
+          <button @click="handleAddRide">Dodaj przejazd</button>
+          <section>
+            <label for="seats">Liczba wolnych miejsc:</label>
+            <input
+              type="number"
+              v-model="seats"
+              placeholder="Podaj liczbę wolnych miejsc"
+              required
+              @input="validateMaxSeats"
+            />
+          </section>
+          <section>
+            <label for="dateTime">Data i godzina przejazdu:</label>
+            <input type="datetime-local" v-model="dateTime" required />
+          </section>
+        </div>
+
+        <div class="content db-column">
+          <!-- Kolumna dla WYJAZDU -->
+          <div class="column">
+            <section>
+              <label for="departure">Miejsce wyjazdu:</label>
+              <input
+                class="city"
+                type="text"
+                v-model="departure"
+                placeholder="Podaj miejsce wyjazdu"
+              />
+            </section>
+            <section>
+              <label for="exactDepartureAddress">Dokładny adres wyjazdu:</label>
+              <input
+                class="city"
+                type="text"
+                id="departureAddressInput"
+                v-model="exactDepartureAddress"
+                @input="updateMap('departure')"
+                placeholder="Wpisz dokładny adres wyjazdu lub zaznacz na mapie"
+                required
+              />
+              <button
+                type="button"
+                @click="toggleMap('departure')"
+                class="map-button"
+              >
+                Mapa
+              </button>
+              <div class="map-wrapper">
+                <div
+                  id="map-departure"
+                  class="map-container"
+                  :class="{ active: showDepartureMap }"
+                >
+                  <div class="map"></div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- Kolumna dla DOCELOWEGO -->
+          <div class="column">
+            <section>
+              <label for="destination">Miejsce docelowe:</label>
+              <input
+                type="text"
+                v-model="destination"
+                placeholder="Podaj miejsce docelowe"
+              />
+            </section>
+            <section>
+              <label for="exactDestinationAddress"
+                >Dokładny adres dojazdu:</label
+              >
+              <input
+                type="text"
+                id="destinationAddressInput"
+                v-model="exactDestinationAddress"
+                @input="updateMap('destination')"
+                placeholder="Wpisz dokładny adres dojazdu lub zaznacz na mapie"
+                required
+              />
+              <button
+                type="button"
+                @click="toggleMap('destination')"
+                class="map-button"
+              >
+                Mapa
+              </button>
+              <div class="map-wrapper">
+                <div
+                  id="map-destination"
+                  class="map-container"
+                  :class="{ active: showDestinationMap }"
+                >
+                  <div class="map"></div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </form>
+    </div>
+  </body>
 </template>
 
 <script>
@@ -487,30 +513,36 @@ export default {
 </script>
 
 <style scoped>
-form {
+body {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: flex-start;
   align-items: center;
   font-family: Arial, Helvetica, sans-serif;
-  padding: 6rem 0 3rem 0;
+  padding: 0;
+  width: 100%;
 }
 
 input[type="text"],
 input[type="number"],
-input[type="datetime-local"] {
-  width: 100%;
-  padding: 10px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  box-sizing: border-box;
-  margin-top: 5px;
+input[type="datetime-local"],
+button {
+  width: 200px;
+  max-width: 400px;
+  padding: 12px;
+}
+
+input#departureAddressInput,
+input#destinationAddressInput {
+  width: 120%;
+  max-width: 500px;
 }
 
 label {
   display: block;
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-weight: bold;
-  margin-bottom: 5px;
+  margin: 10px 0px 10px;
   color: white;
 }
 
@@ -518,16 +550,15 @@ button {
   background-color: #ffb300;
   color: white;
   border: none;
-  border-radius: 8px;
-  padding: 1rem;
-  font-size: 1.1rem;
-  width: 110%;
+  border-radius: 10px;
+  padding: 1.2rem;
+  font-size: 1.2rem;
+  width: 100%;
+  max-width: 200px;
   cursor: pointer;
   display: flex;
-  margin-bottom: 20px;
   justify-content: center;
   align-items: center;
-
   transition:
     background-color 0.3s ease,
     transform 0.2s ease;
@@ -538,43 +569,114 @@ button:hover {
   transform: translateY(-3px);
 }
 
-.map-button button.active {
-  background-color: #de9b00;
-  font-weight: bold;
+section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 1100px;
+  padding: 2rem;
+  border-radius: 10px;
+}
+
+.content.db-column {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 40px;
+  width: 100%;
 }
 
 .up-content {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.column {
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.temp-container {
+  display: flex;
   justify-content: center;
   align-items: center;
-  flex-direction: column;
-}
-
-.map {
-  height: 400px;
+  min-height: 100vh;
   width: 100%;
-  margin-top: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  transform: translateY(100%);
-  transition: transform 0.3s ease-in-out;
+  padding-top: 20px;
 }
 
-.map.show {
-  transform: translateY(0);
+.container {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: visible;
 }
 
 .content {
-  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 60px;
   width: 100%;
-  column-count: 2;
-  gap: 250px;
+  position: relative;
 }
 
-.content.db-column {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 250px;
+.map-wrapper {
+  position: relative;
   width: 100%;
+  max-width: 500px;
+  height: 400px;
+}
+
+.map-container {
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 500px;
+  height: 400px;
+  z-index: 10;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+  display: none;
+}
+
+.map-container.active {
+  display: block;
+}
+
+.map {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+}
+
+.map-button {
+  width: 100px;
+  margin-top: 10px;
+  padding: 15px 15px;
 }
 </style>

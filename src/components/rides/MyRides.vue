@@ -88,7 +88,7 @@ export default {
 
         const q = query(
           collection(db, "rides"),
-          where("userId", "==", currentUser.uid)
+          where("userId", "==", currentUser.uid),
         );
         const querySnapshot = await getDocs(q);
 
@@ -97,19 +97,19 @@ export default {
 
           const reservationsQuery = query(
             collection(db, "reservations"),
-            where("rideId", "==", rideData.id)
+            where("rideId", "==", rideData.id),
           );
           const reservationsSnapshot = await getDocs(reservationsQuery);
 
           const userIds = reservationsSnapshot.docs.map(
-            (doc) => doc.data().userId
+            (doc) => doc.data().userId,
           );
 
           let userMap = {};
           if (userIds.length > 0) {
             const userQuery = query(
               collection(db, "users"),
-              where("__name__", "in", userIds)
+              where("__name__", "in", userIds),
             );
             const userSnapshot = await getDocs(userQuery);
 
@@ -134,7 +134,7 @@ export default {
                   userMap[reservationData.userId]?.phone ||
                   "Brak numeru telefonu",
               };
-            }
+            },
           );
 
           rideData.reservations = reservations;
@@ -199,7 +199,6 @@ export default {
   min-height: 100vh;
   padding-top: 60px;
   align-items: center;
-  background: linear-gradient(150deg, #05445e, #189ab4, #d4f1f4);
 }
 
 .my-rides {

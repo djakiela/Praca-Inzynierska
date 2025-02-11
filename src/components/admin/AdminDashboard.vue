@@ -1,9 +1,10 @@
 <template>
-  <div class="admin-dashboard">
-    <h1>Panel Administratora</h1>
-    <p>Witaj w panelu administratora.</p>
-    <!-- Dodaj tutaj inne funkcje dla administratora -->
-  </div>
+  <body>
+    <div class="admin-dashboard">
+      <h1>Panel Administratora</h1>
+      <p>Witaj w panelu administratora.</p>
+    </div>
+  </body>
 </template>
 
 <script>
@@ -13,6 +14,13 @@ export default {
 </script>
 
 <style scoped>
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
 .admin-dashboard {
   max-width: 800px;
   margin: 0 auto;
@@ -22,6 +30,7 @@ export default {
   background-color: #f9f9f9;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
+
 .admin-dashboard h1 {
   text-align: center;
   color: #333;
