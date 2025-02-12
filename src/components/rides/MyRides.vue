@@ -224,7 +224,7 @@ h1 {
 
 .loading {
   text-align: center;
-  color: #007bff;
+  color: #ffb300;
 }
 
 .error {

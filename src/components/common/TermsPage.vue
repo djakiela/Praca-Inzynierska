@@ -120,15 +120,16 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(150deg, #05445e, #189ab4, #d4f1f4);
   font-family: Arial, Helvetica, sans-serif;
   padding: 20px;
+  margin-top: 50px;
 }
 
 .terms-content {
   background-color: white;
   padding: 2rem;
   border-radius: 15px;
+  background: rgba(51, 51, 51, 0.9);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
   text-align: left;
   width: 80%;
@@ -137,31 +138,40 @@ export default {
 
 .terms-page h1 {
   text-align: center;
-  color: #333;
+  color: white;
+}
+
+.terms-page h4 {
+  color: white;
 }
 
 .terms-page p {
   margin-bottom: 10px;
-  color: #333;
+  color: white;
 }
 
 .btn-back {
   display: block;
   width: 20%;
   padding: 12px;
-  background-color: #189ab4;
-  color: white;
+  background-color: #ffb300;
+  color: black;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 1.4rem;
+  font-weight: bold;
   margin: 1rem auto 0 auto;
   text-align: center;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition:
+    background-color 0.3s,
+    transform 0.2s,
+    box-shadow 0.3s;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 .btn-back:hover {
-  background-color: #00b3b8;
+  background-color: #ffbb40;
   transform: translateY(-3px);
 }
 

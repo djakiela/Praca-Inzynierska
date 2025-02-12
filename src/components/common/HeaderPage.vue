@@ -168,7 +168,7 @@ main {
 .logo {
   display: flex;
   align-items: center;
-  margin-right: 18px;
+  margin-right: 7px;
   font-size: 1.5rem;
   font-weight: bold;
   vertical-align: super;
@@ -178,7 +178,7 @@ main {
 
 svg {
   fill: #ffb300;
-  text-shadow: 0px 0px 8px rgba(255, 179, 0, 0.8);
+  filter: drop-shadow(0px 0px 5px rgba(255, 179, 0, 0.8));
 }
 
 .nav-links {
@@ -198,6 +198,7 @@ svg {
   margin-right: 20px;
   vertical-align: middle;
   color: white;
+  align-items: flex-end;
 }
 
 .user-section i {
@@ -219,6 +220,7 @@ svg {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  border-radius: 10px;
   background: rgba(51, 51, 51, 0.9);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
@@ -227,6 +229,17 @@ svg {
   text-decoration: none;
   color: white;
   font-size: 1rem;
+  padding: 8px 12px;
+  transition:
+    background-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.drop-box a:hover {
+  background-color: rgba(255, 179, 0, 0.8);
+  color: black;
+  border-radius: 5px;
+  box-shadow: 0px 0px 10px rgba(255, 179, 0, 0.8);
 }
 
 .router {

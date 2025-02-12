@@ -1,17 +1,17 @@
 <template>
-  <div class="register-page">
-    <div class="r-card">
+  <body class="page">
+    <form class="content">
       <h1>Rejestracja</h1>
-      <form @submit.prevent="registerWithEmail">
-        <div>
+      <div @submit.prevent="registerWithEmail">
+        <section>
           <label for="username">Nazwa użytkownika:</label>
           <input type="text" v-model="username" required />
-        </div>
-        <div>
+        </section>
+        <section>
           <label for="email">Email:</label>
           <input type="email" v-model="email" required />
-        </div>
-        <div>
+        </section>
+        <section>
           <label for="phonenumber">Numer telefonu:</label>
           <input
             type="phonenumber"
@@ -21,21 +21,21 @@
             @input="validatePhoneNumber"
             required
           />
-        </div>
-        <div>
+        </section>
+        <section>
           <label for="password">Hasło:</label>
           <input type="password" v-model="password" required />
-        </div>
-        <div class="terms-checkbox">
+        </section>
+        <section class="terms-checkbox">
           <input type="checkbox" v-model="termsAccepted" required />
           <label for="terms"
             >Akceptuję
             <router-link to="/terms" class="link">regulamin</router-link></label
           >
-        </div>
-        <button type="submit" class="register-btn">Zarejestruj</button>
-      </form>
-      <button @click="registerWithGoogle" class="google-btn">
+        </section>
+        <button type="submit" class="r-button">Zarejestruj</button>
+      </div>
+      <button @click="registerWithGoogle" class="g-button">
         Zarejestruj się przez Google
       </button>
       <p class="login-link">
@@ -48,8 +48,8 @@
         :message="alertMessage"
         @close="handleAlertClose"
       />
-    </div>
-  </div>
+    </form>
+  </body>
 </template>
 
 <script>
@@ -93,7 +93,7 @@ export default {
         const userCredential = await createUserWithEmailAndPassword(
           auth,
           this.email,
-          this.password
+          this.password,
         );
         const user = userCredential.user;
         await setDoc(doc(db, "users", user.uid), {
@@ -166,119 +166,167 @@ export default {
 </script>
 
 <style scoped>
-.register-page {
+.page {
   align-content: center;
-  display: center;
+  display: flex;
   justify-content: center;
   font-family: Arial, Helvetica, sans-serif;
-  background: linear-gradient(150deg, #05445e, #189ab4, #d4f1f4);
-  height: 53.3em;
-}
-
-.r-card {
-  background-color: white;
-  padding: 2rem;
-  border-radius: 15px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  width: 320px;
-  height: 500px;
-  margin: 0 auto;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.r-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-}
-
-.register-page h1 {
-  text-align: center;
-  color: #333;
-}
-.register-page form div {
-  margin-bottom: 10px;
-  text-align: left;
-}
-.register-page form label {
-  display: block;
-  margin-bottom: 5px;
-}
-.register-page form input[type="email"],
-.register-page form input[type="password"],
-.register-page form input[type="text"],
-.register-page form input[type="phonenumber"] {
-  width: 100%;
-  padding: 8px;
-  box-sizing: border-box;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-.terms-checkbox {
+  height: 100vh;
   display: flex;
   align-items: center;
 }
+
+.content {
+  background: rgba(51, 51, 51, 0.9);
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  width: 350px;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.content:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+}
+
+.content h1 {
+  margin-bottom: 1.5rem;
+  color: #ffb300;
+  font-size: 2rem;
+  font-weight: bold;
+  text-shadow: 0px 0px 8px rgba(255, 179, 0, 0.8);
+}
+
+.page form {
+  display: flex;
+  flex-direction: column;
+}
+
+.page form div {
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.page form label {
+  font-weight: bold;
+  margin-bottom: 0.4rem;
+  display: block;
+  color: #ffbb40;
+}
+
+.page form input {
+  width: 100%;
+  padding: 0.6rem;
+  background: #2b2b2b !important;
+  border: 1px solid #444 !important;
+  border-radius: 8px;
+  font-size: 1rem;
+  color: white !important;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.page form input:-webkit-autofill,
+.page form input:-webkit-autofill:hover,
+.page form input:-webkit-autofill:focus,
+.page form input:-webkit-autofill:active {
+  background-color: #2b2b2b !important;
+  -webkit-box-shadow: 0 0 0px 1000px #2b2b2b inset !important;
+  -webkit-text-fill-color: white !important;
+}
+
+.page form input:focus {
+  border-color: #ffb300 !important;
+  background: #333 !important;
+}
+
+.terms-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .terms-checkbox input[type="checkbox"] {
-  margin-right: 5px;
-  margin-bottom: 7px;
+  margin: 0;
   width: 20px;
   height: 15px;
 }
+
 .terms-checkbox label {
-  margin-bottom: 0;
+  color: #ffbb40;
+  margin: 0;
+  font-size: 1rem;
+  color: #ffbb40;
+  display: flex;
+  align-items: center;
+  margin-top: 6px;
 }
 
-.register-btn {
+.r-button {
   width: 100%;
   padding: 0.8rem;
-  background-color: #189ab4;
-  color: white;
+  background-color: #ffb300;
+  color: black;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
   margin-top: 1rem;
+  font-weight: bold;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition:
+    background-color 0.3s ease,
+    transform 0.2s ease;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
 }
 
-.register-btn:hover {
-  background-color: #00b3b8;
+.r-button:hover {
+  background-color: #ffbb40;
   transform: translateY(-3px);
 }
 
-.google-btn {
+.g-button {
   width: 100%;
   padding: 0.8rem;
-  background-color: #05445e;
-  color: white;
+  background-color: #de9b00;
+  color: black;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
   margin-top: 0.5rem;
+  font-weight: bold;
   cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition:
+    background-color 0.3s ease,
+    transform 0.2s ease;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
 }
 
-.google-btn:hover {
-  background-color: #006b7f;
+.g-button:hover {
+  background-color: #ffae40;
   transform: translateY(-3px);
 }
 
 .login-link {
-  color: #54626f;
+  color: #ffbb40;
   margin-top: 1rem;
   font-size: 0.9rem;
 }
 
 .links {
-  color: #54626f;
+  color: #ffb300;
+  font-weight: bold;
 }
 
 .link {
-  color: black;
+  color: #ffb300;
+  text-decoration: underline;
 }
 
 .error {

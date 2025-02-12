@@ -1,7 +1,6 @@
 <template>
   <body class="page">
     <section class="reservation">
-      <h1>Twoje rezerwacje</h1>
       <div v-if="loading" class="loading">Ładowanie...</div>
       <div v-if="error" class="error">{{ error }}</div>
       <div v-if="rides.length === 0 && !loading" class="no-rides">
@@ -9,6 +8,7 @@
       </div>
 
       <ul v-if="rides.length > 0">
+        <h1>Twoje rezerwacje</h1>
         <li v-for="(ride, index) in rides" :key="ride.id" class="conent">
           <h2>Przejazd: {{ ride.departure }} → {{ ride.destination }}</h2>
           <p><strong>Data:</strong> {{ formatDate(ride.dateTime) }}</p>
@@ -285,7 +285,7 @@ h1 {
 
 .loading {
   text-align: center;
-  color: #007bff;
+  color: #ffb300;
 }
 
 .error {
@@ -302,8 +302,8 @@ ul {
   padding: 0;
   margin: 0;
   display: flex;
-  flex-direction: column; /* Zapobiega podziałowi na kolumny */
-  gap: 15px; /* Dodaje odstępy między rezerwacjami */
+  flex-direction: column;
+  gap: 15px;
 }
 
 .conent {
@@ -330,7 +330,8 @@ ul {
 }
 
 button {
-  padding: 15px 25px;
+  padding: 10px 15px;
+  margin: 10px 0px 15px;
   border: none;
   border-radius: 5px;
   background-color: #ffb300;
@@ -394,7 +395,6 @@ button.secondary:active {
 }
 
 section {
-  display: flex;
   align-items: flex-start;
 }
 

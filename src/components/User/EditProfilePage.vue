@@ -122,7 +122,7 @@ export default {
       try {
         const usernameQuery = query(
           collection(db, "users"),
-          where("username", "==", this.username)
+          where("username", "==", this.username),
         );
         const usernameQuerySnapshot = await getDocs(usernameQuery);
 
@@ -141,7 +141,7 @@ export default {
         const auth = getAuth();
         console.log(
           "Zalogowany użytkownik:",
-          auth.currentUser?.uid || "Brak zalogowanego użytkownika"
+          auth.currentUser?.uid || "Brak zalogowanego użytkownika",
         );
 
         this.usernameError = "";
@@ -150,7 +150,7 @@ export default {
       } catch (error) {
         console.error(
           "Błąd podczas sprawdzania dostępności nazwy użytkownika:",
-          error.message
+          error.message,
         );
         this.usernameError =
           "Błąd podczas sprawdzania dostępności nazwy użytkownika.";
@@ -260,7 +260,6 @@ export default {
   display: center;
   justify-content: center;
   font-family: Arial, Helvetica, sans-serif;
-  background: linear-gradient(150deg, #05445e, #189ab4, #d4f1f4);
   height: 100vh;
 }
 
@@ -272,7 +271,9 @@ export default {
   text-align: center;
   width: 320px;
   margin: 0 auto;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .profile-card:hover {
@@ -307,7 +308,9 @@ export default {
   font-size: 1rem;
   margin-top: 1rem;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition:
+    background-color 0.3s ease,
+    transform 0.2s ease;
 }
 
 .update-btn:hover {
