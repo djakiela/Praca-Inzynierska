@@ -37,20 +37,24 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7); /* Ciemne przyciemnienie tła */
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 9999;
 }
+
 .alert-box {
-  background: white;
-  padding: 20px;
-  border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background: rgba(51, 51, 51, 0.95); /* Ciemne tło dla spójności */
+  color: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   transition:
     background-color 0.3s ease,
     transform 0.2s ease;
   text-align: center;
+  width: 350px;
 }
 
 .alert-box:hover {
@@ -59,16 +63,32 @@ export default {
 
 .alert-box p {
   margin-bottom: 20px;
+  font-size: 1.1rem;
+  font-weight: bold;
 }
+
 .alert-box button {
-  background-color: #189ab4;
-  color: #fff;
+  background-color: #ffb300; /* Żółty akcent */
+  color: black;
+  font-weight: bold;
   border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
+  padding: 12px 20px;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 1rem;
+  transition:
+    background-color 0.3s ease,
+    transform 0.2s ease;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
 }
+
 .alert-box button:hover {
-  background-color: #00b3b8;
+  background-color: #ffbb40;
+  transform: translateY(-3px);
+}
+
+.alert-box button:active {
+  background-color: #de9b00;
+  transform: scale(0.95);
 }
 </style>

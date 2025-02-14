@@ -411,13 +411,37 @@ body {
   width: 100%;
 }
 
-input[type="text"],
-input[type="number"],
-input[type="datetime-local"],
 button {
   width: 200px;
   max-width: 400px;
   padding: 12px;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="datetime-local"] {
+  max-width: 400px;
+  padding: 12px;
+  background: #2b2b2b;
+  border: 1px solid #444;
+  border-radius: 8px;
+  font-size: 1rem;
+  color: white;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+input:focus {
+  border-color: #ffb300;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  background-color: #2b2b2b !important;
+  -webkit-box-shadow: 0 0 0px 1000px #2b2b2b inset !important;
+  -webkit-text-fill-color: white !important;
 }
 
 input#departureAddressInput,

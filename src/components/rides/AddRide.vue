@@ -5,6 +5,7 @@
         v-if="showAlert"
         :message="alertMessage"
         @close="handleAlertClose"
+        class="alert-container"
       />
       <form>
         <div class="up-content">
@@ -157,26 +158,40 @@ export default {
     const alertMessage = ref("");
     const showAlert = ref(false);
 
-    watch(exactDepartureAddress, (newAddress) => {
-      if (newAddress) {
+    watch(
+      [exactDepartureAddress, exactDestinationAddress],
+      ([newDepAddress, newDestAddress]) => {
         const geocoder = new google.maps.Geocoder();
 
-        geocoder.geocode({ address: newAddress }, (results, status) => {
-          if (status === "OK" && results[0]) {
-            const addressComponents = results[0].address_components;
-            const city = addressComponents.find((component) =>
-              component.types.includes("locality"),
-            )?.long_name;
+        if (newDepAddress) {
+          geocoder.geocode({ address: newDepAddress }, (results, status) => {
+            if (status === "OK" && results[0]) {
+              const city = results[0].address_components.find((component) =>
+                component.types.includes("locality"),
+              )?.long_name;
 
-            if (city) {
-              departure.value = city;
+              if (city) {
+                departure.value = city;
+              }
             }
-          } else {
-            console.warn("Nie udało się znaleźć miasta dla adresu: " + status);
-          }
-        });
-      }
-    });
+          });
+        }
+
+        if (newDestAddress) {
+          geocoder.geocode({ address: newDestAddress }, (results, status) => {
+            if (status === "OK" && results[0]) {
+              const city = results[0].address_components.find((component) =>
+                component.types.includes("locality"),
+              )?.long_name;
+
+              if (city) {
+                destination.value = city;
+              }
+            }
+          });
+        }
+      },
+    );
 
     /**
      * * Funkcja do walidacji maksymalnej liczby miejsc
@@ -523,13 +538,37 @@ body {
   width: 100%;
 }
 
-input[type="text"],
-input[type="number"],
-input[type="datetime-local"],
 button {
   width: 200px;
   max-width: 400px;
   padding: 12px;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="datetime-local"] {
+  max-width: 400px;
+  padding: 12px;
+  background: #2b2b2b;
+  border: 1px solid #444;
+  border-radius: 8px;
+  font-size: 1rem;
+  color: white;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+input:focus {
+  border-color: #ffb300;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  background-color: #2b2b2b !important;
+  -webkit-box-shadow: 0 0 0px 1000px #2b2b2b inset !important;
+  -webkit-text-fill-color: white !important;
 }
 
 input#departureAddressInput,
@@ -678,5 +717,38 @@ form {
   width: 100px;
   margin-top: 10px;
   padding: 15px 15px;
+}
+.alert-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(51, 51, 51, 0.9);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  z-index: 9999;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  min-width: 300px;
+}
+
+.alert-container button {
+  margin-top: 10px;
+  background-color: #ffb300;
+  color: black;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition:
+    background-color 0.3s ease,
+    transform 0.2s ease;
+}
+
+.alert-container button:hover {
+  background-color: #ffbb40;
+  transform: translateY(-2px);
 }
 </style>
