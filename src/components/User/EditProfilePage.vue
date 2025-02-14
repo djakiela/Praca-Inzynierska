@@ -11,16 +11,10 @@
           alt="Avatar"
           class="avatar-circle"
         />
-        <img
-          v-else
-          src="/avatar.png"
-          alt="Default Avatar"
-          class="avatar-circle"
-        />
         <input type="file" @change="onFileChange" class="file-input" />
         <button @click="updateAvatar" class="update-btn">Zmień avatar</button>
         <button
-          v-if="avatarUrl !== '/avatar.png'"
+          v-if="avatarUrl !== defaultAvatarUrl"
           @click="removeAvatar"
           class="remove-avatar-btn"
         >
@@ -65,7 +59,12 @@
 </template>
 
 <script>
-import { getAuth, updatePassword } from "firebase/auth";
+import {
+  getAuth,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+} from "firebase/auth";
 import {
   getFirestore,
   doc,
@@ -93,6 +92,7 @@ export default {
       newPassword: "",
       avatar: null,
       avatarUrl: "",
+      defaultAvatarUrl: "/avatar.png",
       errorMessage: "",
       successMessage: "",
       usernameError: "",
@@ -106,13 +106,13 @@ export default {
       if (file) {
         this.avatar = file;
         this.avatarUrl = URL.createObjectURL(file);
+        console.log("Wybrano plik:", file.name);
       }
     },
 
     // Sprawdzanie dostępności nazwy użytkownika
     async checkUsernameAvailability() {
       const db = getFirestore();
-
       if (this.username.trim() === "") {
         this.usernameError = "Nazwa użytkownika nie może być pusta.";
         this.usernameAvailable = false;
@@ -137,21 +137,12 @@ export default {
           }
         }
 
-        // Logowanie zalogowanego użytkownika
-        const auth = getAuth();
-        console.log(
-          "Zalogowany użytkownik:",
-          auth.currentUser?.uid || "Brak zalogowanego użytkownika",
-        );
-
+        console.log("Nazwa użytkownika dostępna:", this.username);
         this.usernameError = "";
         this.usernameAvailable = true;
         return true;
       } catch (error) {
-        console.error(
-          "Błąd podczas sprawdzania dostępności nazwy użytkownika:",
-          error.message,
-        );
+        console.error("Błąd przy sprawdzaniu dostępności nazwy:", error);
         this.usernameError =
           "Błąd podczas sprawdzania dostępności nazwy użytkownika.";
         this.usernameAvailable = false;
@@ -159,95 +150,187 @@ export default {
       }
     },
 
-    // Aktualizacja profilu użytkownika
-    async updateProfile() {
+    // Aktualizacja nazwy użytkownika
+    async updateUsername() {
+      console.log("🟢 Rozpoczęto zmianę nazwy użytkownika...");
+
       const auth = getAuth();
       const user = auth.currentUser;
       const db = getFirestore();
-      const storage = getStorage();
 
-      const isUsernameAvailable = await this.checkUsernameAvailability();
-      if (!isUsernameAvailable) {
+      if (!user) {
         this.errorMessage =
-          "Proszę rozwiązać wszystkie błędy przed aktualizacją profilu.";
+          "Musisz być zalogowany, aby zmienić nazwę użytkownika.";
+        console.error("🔴 Błąd: Brak zalogowanego użytkownika!");
+        return;
+      }
+
+      if (this.username.trim() === "") {
+        this.errorMessage = "Nazwa użytkownika nie może być pusta.";
+        console.error("🔴 Błąd: Nazwa użytkownika jest pusta!");
+        return;
+      }
+
+      console.log("🟢 Sprawdzanie dostępności nazwy:", this.username);
+      const usernameAvailable = await this.checkUsernameAvailability();
+      if (!usernameAvailable) {
+        console.warn("🟡 Nazwa użytkownika jest już zajęta!");
         return;
       }
 
       try {
-        // Aktualizacja hasła (jeśli wprowadzono nowe)
-        if (this.newPassword) {
-          await updatePassword(user, this.newPassword);
-        }
-
-        // Aktualizacja avatara (jeśli przesłano nowy plik)
-        if (this.avatar) {
-          const storageRef = ref(storage, `avatars/${user.uid}`);
-          await uploadBytes(storageRef, this.avatar);
-          const avatarUrl = await getDownloadURL(storageRef);
-          this.avatarUrl = avatarUrl;
-        }
-
-        // Aktualizacja danych użytkownika w Firestore
         const userDocRef = doc(db, "users", user.uid);
-        await updateDoc(userDocRef, {
-          username: this.username,
-          ...(this.avatarUrl && { avatarUrl: this.avatarUrl }),
-        });
+        await updateDoc(userDocRef, { username: this.username });
 
-        this.successMessage = "Profil zaktualizowany pomyślnie!";
-        setTimeout(() => {
-          this.successMessage = "";
-        }, 5000); // Komunikat znika po 5 sekundach
+        console.log("✅ Nazwa użytkownika zaktualizowana:", this.username);
+        this.successMessage = "Nazwa użytkownika została zmieniona!";
       } catch (error) {
-        console.error("Błąd podczas aktualizacji profilu:", error.message);
+        console.error("❌ Błąd zmiany nazwy użytkownika:", error);
         this.errorMessage =
-          "Błąd podczas aktualizacji profilu: " + error.message;
+          "Błąd podczas zmiany nazwy użytkownika: " + error.message;
+      }
+    },
+    // Aktualizacja avatara
+    async updateAvatar() {
+      console.log("🟢 Rozpoczęto aktualizację avatara...");
+
+      const auth = getAuth();
+      const user = auth.currentUser;
+      const storage = getStorage();
+      const db = getFirestore();
+
+      if (!user) {
+        this.errorMessage = "Musisz być zalogowany, aby zmienić avatar.";
+        console.error("🔴 Błąd: Brak zalogowanego użytkownika!");
+        return;
+      }
+
+      if (!this.avatar) {
+        this.errorMessage = "Nie wybrano pliku.";
+        console.error("🔴 Błąd: Brak wybranego pliku!");
+        return;
+      }
+
+      try {
+        console.log("🟢 Przesyłanie pliku do Firebase Storage...");
+        const storageRef = ref(storage, `imgu/${user.uid}.jpg`);
+        await uploadBytes(storageRef, this.avatar);
+
+        console.log("🟢 Pobieranie linku do avatara...");
+        const avatarUrl = await getDownloadURL(storageRef);
+
+        console.log("🟢 Aktualizacja Firestore...");
+        const userDocRef = doc(db, "users", user.uid);
+        await updateDoc(userDocRef, { avatarUrl: avatarUrl });
+
+        console.log("✅ Avatar został zapisany:", avatarUrl);
+        this.avatarUrl = avatarUrl;
+        this.successMessage = "Avatar zaktualizowany pomyślnie!";
+      } catch (error) {
+        console.error("❌ Błąd podczas zapisu avatara:", error);
+        this.errorMessage = "Błąd podczas zapisu avatara: " + error.message;
       }
     },
 
     // Usuwanie avatara
     async removeAvatar() {
+      console.log("🟢 Rozpoczęto usuwanie avatara...");
+
       const auth = getAuth();
       const user = auth.currentUser;
-      const db = getFirestore();
       const storage = getStorage();
+      const db = getFirestore();
+
+      if (!user) {
+        this.errorMessage = "Musisz być zalogowany, aby usunąć avatar.";
+        console.error("🔴 Błąd: Brak zalogowanego użytkownika!");
+        return;
+      }
 
       try {
-        const storageRef = ref(storage, `avatars/${user.uid}`);
+        console.log("🟢 Usuwanie pliku z Firebase Storage...");
+        const storageRef = ref(storage, `imgu/${user.uid}.jpg`);
         await deleteObject(storageRef);
 
-        this.avatarUrl = "/avatar.png";
+        console.log("🟢 Resetowanie avatara na domyślny...");
         const userDocRef = doc(db, "users", user.uid);
-        await updateDoc(userDocRef, {
-          avatarUrl: this.avatarUrl,
-        });
+        await updateDoc(userDocRef, { avatarUrl: this.defaultAvatarUrl });
 
+        this.avatarUrl = this.defaultAvatarUrl;
+        console.log("✅ Avatar został usunięty!");
         this.successMessage = "Avatar usunięty pomyślnie!";
-        setTimeout(() => {
-          this.successMessage = "";
-        }, 5000);
       } catch (error) {
-        console.error("Błąd podczas usuwania avatara:", error.message);
+        console.error("❌ Błąd podczas usuwania avatara:", error);
         this.errorMessage = "Błąd podczas usuwania avatara: " + error.message;
+      }
+    },
+
+    // Zmiana hasła
+    async updatePassword() {
+      console.log("🟢 Rozpoczęto zmianę hasła...");
+
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (!user) {
+        this.errorMessage = "Musisz być zalogowany, aby zmienić hasło.";
+        console.error("🔴 Błąd: Brak zalogowanego użytkownika!");
+        return;
+      }
+
+      if (this.newPassword.length < 6) {
+        this.errorMessage = "Hasło musi mieć co najmniej 6 znaków.";
+        console.error("🔴 Błąd: Hasło jest za krótkie!");
+        return;
+      }
+
+      try {
+        console.log("🟢 Pobieranie ostatniego e-maila użytkownika...");
+        const credential = EmailAuthProvider.credential(
+          user.email,
+          prompt("🔐 Wpisz aktualne hasło:"),
+        );
+
+        console.log("🔄 Ponowne uwierzytelnianie...");
+        await reauthenticateWithCredential(user, credential);
+
+        console.log("🟢 Uwierzytelnienie powiodło się. Aktualizacja hasła...");
+        await updatePassword(user, this.newPassword);
+
+        console.log("✅ Hasło zostało zmienione!");
+        this.successMessage = "Hasło zmienione pomyślnie!";
+      } catch (error) {
+        if (error.code === "auth/wrong-password") {
+          console.error("❌ Błąd: Wpisano błędne stare hasło!");
+          this.errorMessage = "Błędne stare hasło. Spróbuj ponownie.";
+        } else if (error.code === "auth/requires-recent-login") {
+          console.error("⚠️ Uwierzytelnienie wymagane! Zaloguj się ponownie.");
+          this.errorMessage = "Zaloguj się ponownie, aby zmienić hasło.";
+        } else {
+          console.error("❌ Inny błąd zmiany hasła:", error);
+          this.errorMessage = "Błąd podczas zmiany hasła: " + error.message;
+        }
       }
     },
   },
 
-  // Pobieranie danych użytkownika podczas ładowania komponentu
   async mounted() {
     const auth = getAuth();
-    const user = auth.currentUser;
     const db = getFirestore();
 
-    if (user) {
-      this.email = user.email;
+    if (auth.currentUser) {
+      this.email = auth.currentUser.email;
+      console.log("Zalogowany użytkownik:", auth.currentUser.uid);
 
-      const userDocRef = doc(db, "users", user.uid);
+      const userDocRef = doc(db, "users", auth.currentUser.uid);
       const userDoc = await getDoc(userDocRef);
+
       if (userDoc.exists()) {
         const userData = userDoc.data();
         this.username = userData.username || "";
-        this.avatarUrl = userData.avatarUrl || "/avatar.png";
+        this.avatarUrl = userData.avatarUrl || this.defaultAvatarUrl;
+
+        console.log("Dane użytkownika załadowane:", userData);
       }
     }
   },
@@ -260,6 +343,7 @@ export default {
   display: center;
   justify-content: center;
   font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(150deg, #05445e, #189ab4, #d4f1f4);
   height: 100vh;
 }
 
