@@ -42,20 +42,23 @@
             <router-link to="/my-rides">Moje przejazdy</router-link>
           </div>
         </div>
-
         <div
           @mouseenter="showProfileDropdown"
           @mouseleave="hideProfileDropdown"
           class="drop"
         >
-          <router-link to="/login"> <i class="fas fa-user"></i></router-link>
-          <div
-            v-if="isLogged"
-            v-show="isProfileDropdownActive"
-            class="drop-box fas-box"
-          >
-            <router-link to="/edit-profile">Edytuj Profil</router-link>
-            <a @click="logout">Wyloguj</a>
+          <div class="profile-button">
+            <i class="fas fa-user"></i>
+          </div>
+          <div v-show="isProfileDropdownActive" class="drop-box">
+            <template v-if="isLogged">
+              <router-link to="/edit-profile">Edytuj Profil</router-link>
+              <a @click="logout">Wyloguj</a>
+            </template>
+            <template v-else>
+              <router-link to="/login">Logowanie</router-link>
+              <router-link to="/register">Rejestracja</router-link>
+            </template>
           </div>
         </div>
       </section>
@@ -248,3 +251,4 @@ svg {
   color: white;
 }
 </style>
+www.w3.org

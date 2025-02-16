@@ -1,5 +1,13 @@
 <template>
   <div class="edit-profile-page">
+    <!-- Alert do wpisania aktualnego hasła -->
+    <AlertPage3
+      v-if="showAlert"
+      :message="alertMessage"
+      :showInput="true"
+      @close="handleAlertClose"
+    />
+
     <div class="profile-card">
       <h1>Edytuj Profil</h1>
 
@@ -12,14 +20,18 @@
           class="avatar-circle"
         />
         <input type="file" @change="onFileChange" class="file-input" />
-        <button @click="updateAvatar" class="update-btn">Zmień avatar</button>
-        <button
-          v-if="avatarUrl !== defaultAvatarUrl"
-          @click="removeAvatar"
-          class="remove-avatar-btn"
-        >
-          Usuń avatar
-        </button>
+        <div class="avatar-buttons">
+          <button @click="updateAvatar" class="update-avatar-btn">
+            Zmień avatar
+          </button>
+          <button
+            v-if="avatarUrl !== defaultAvatarUrl"
+            @click="removeAvatar"
+            class="remove-avatar-btn"
+          >
+            Usuń avatar
+          </button>
+        </div>
       </div>
 
       <!-- Sekcja Nazwy Użytkownika -->
@@ -43,10 +55,14 @@
       </form>
 
       <!-- Sekcja Hasła -->
-      <form @submit.prevent="updatePassword" class="profile-form">
+      <form @submit.prevent="requestPasswordChange" class="profile-form">
         <div class="inputs">
           <label for="newPassword">Nowe Hasło:</label>
-          <input type="password" v-model="newPassword" />
+          <input
+            type="password"
+            v-model="newPassword"
+            placeholder="Wpisz nowe hasło"
+          />
         </div>
         <button type="submit" class="update-btn">Zmień hasło</button>
       </form>
@@ -82,9 +98,13 @@ import {
   getDownloadURL,
   deleteObject,
 } from "firebase/storage";
+import AlertPage3 from "@/components/common/AlertPage3.vue";
 
 export default {
   name: "EditProfilePage",
+  components: {
+    AlertPage3,
+  },
   data() {
     return {
       email: "",
@@ -97,6 +117,10 @@ export default {
       successMessage: "",
       usernameError: "",
       usernameAvailable: false,
+      showAlert: false,
+      alertMessage: "",
+      pendingPasswordChange: false,
+      currentPassword: "",
     };
   },
   methods: {
@@ -266,6 +290,28 @@ export default {
     },
 
     // Zmiana hasła
+    requestPasswordChange() {
+      if (!this.newPassword || this.newPassword.length < 6) {
+        this.errorMessage = "Nowe hasło musi mieć co najmniej 6 znaków.";
+        return;
+      }
+
+      this.alertMessage = "🔐 Wpisz aktualne hasło:";
+      this.showAlert = true;
+    },
+
+    async handleAlertClose(password) {
+      if (!password) {
+        this.errorMessage = "Zmiana hasła anulowana.";
+        this.showAlert = false;
+        return;
+      }
+
+      this.currentPassword = password;
+      this.showAlert = false;
+      await this.updatePassword();
+    },
+
     async updatePassword() {
       console.log("🟢 Rozpoczęto zmianę hasła...");
 
@@ -274,24 +320,15 @@ export default {
 
       if (!user) {
         this.errorMessage = "Musisz być zalogowany, aby zmienić hasło.";
-        console.error("🔴 Błąd: Brak zalogowanego użytkownika!");
-        return;
-      }
-
-      if (this.newPassword.length < 6) {
-        this.errorMessage = "Hasło musi mieć co najmniej 6 znaków.";
-        console.error("🔴 Błąd: Hasło jest za krótkie!");
         return;
       }
 
       try {
-        console.log("🟢 Pobieranie ostatniego e-maila użytkownika...");
+        console.log("🔄 Ponowne uwierzytelnianie...");
         const credential = EmailAuthProvider.credential(
           user.email,
-          prompt("🔐 Wpisz aktualne hasło:"),
+          this.currentPassword,
         );
-
-        console.log("🔄 Ponowne uwierzytelnianie...");
         await reauthenticateWithCredential(user, credential);
 
         console.log("🟢 Uwierzytelnienie powiodło się. Aktualizacja hasła...");
@@ -301,13 +338,10 @@ export default {
         this.successMessage = "Hasło zmienione pomyślnie!";
       } catch (error) {
         if (error.code === "auth/wrong-password") {
-          console.error("❌ Błąd: Wpisano błędne stare hasło!");
           this.errorMessage = "Błędne stare hasło. Spróbuj ponownie.";
         } else if (error.code === "auth/requires-recent-login") {
-          console.error("⚠️ Uwierzytelnienie wymagane! Zaloguj się ponownie.");
           this.errorMessage = "Zaloguj się ponownie, aby zmienić hasło.";
         } else {
-          console.error("❌ Inny błąd zmiany hasła:", error);
           this.errorMessage = "Błąd podczas zmiany hasła: " + error.message;
         }
       }
@@ -339,34 +373,28 @@ export default {
 
 <style scoped>
 .edit-profile-page {
-  align-content: center;
-  display: center;
+  display: flex;
   justify-content: center;
+  align-items: center;
+  min-height: 100vh;
   font-family: Arial, Helvetica, sans-serif;
-  background: linear-gradient(150deg, #05445e, #189ab4, #d4f1f4);
-  height: 100vh;
 }
 
 .profile-card {
-  background-color: white;
+  background: rgba(34, 34, 34, 0.95);
   padding: 2rem;
   border-radius: 15px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   text-align: center;
-  width: 320px;
-  margin: 0 auto;
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+  width: 360px;
+  color: white;
 }
 
 .profile-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 15px rgba(255, 179, 0, 0.5);
 }
 
 .avatar-container {
-  text-align: center;
   margin-bottom: 20px;
 }
 
@@ -375,22 +403,22 @@ export default {
   height: 100px;
   border-radius: 50%;
   object-fit: cover;
+  box-shadow: 0 0 12px rgba(255, 179, 0, 0.6);
 }
 
 .file-input {
   display: block;
   margin: 10px auto;
+  padding-left: 50px;
 }
 
 .update-btn {
-  width: 100%;
   padding: 0.8rem;
-  background-color: #189ab4;
-  color: white;
+  background-color: #ffb300;
+  color: black;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
-  margin-top: 1rem;
+  font-size: 0.9rem;
   cursor: pointer;
   transition:
     background-color 0.3s ease,
@@ -398,19 +426,18 @@ export default {
 }
 
 .update-btn:hover {
-  background-color: #00b3b8;
+  background-color: #ffbb40;
   transform: translateY(-3px);
 }
 
 .remove-avatar-btn {
   background-color: #e74c3c;
   color: white;
+  font-size: 0.9rem;
   border: none;
   border-radius: 8px;
-  padding: 0.6rem;
+  padding: 0.8rem;
   cursor: pointer;
-  margin-top: 1rem;
-  transition: background-color 0.3s ease;
 }
 
 .remove-avatar-btn:hover {
@@ -418,40 +445,82 @@ export default {
 }
 
 .inputs {
-  margin-bottom: 1.2rem;
-  text-align: left;
+  margin-bottom: 1rem;
+  text-align: center;
 }
 
 .inputs label {
   font-weight: 500;
+  color: #ddd;
   margin-bottom: 0.4rem;
   display: block;
-  color: #54626f;
 }
 
 .inputs input {
-  width: 100%;
+  width: 94%;
   padding: 0.6rem;
-  border: 1px solid #ddd;
+  background: #2b2b2b !important;
+  border: 1px solid #444;
   border-radius: 8px;
   font-size: 1rem;
+  color: white !important;
   outline: none;
   transition: border-color 0.2s ease;
 }
 
+/* Usunięcie błędu z autofill */
+.inputs input:-webkit-autofill,
+.inputs input:-webkit-autofill:hover,
+.inputs input:-webkit-autofill:focus,
+.inputs input:-webkit-autofill:active {
+  background-color: #2b2b2b !important;
+  -webkit-box-shadow: 0 0 0px 1000px #2b2b2b inset !important;
+  -webkit-text-fill-color: white !important;
+}
+
+/* Żółte obramowanie jak w logowaniu */
 .inputs input:focus {
-  border-color: #3b444b;
+  border-color: #ffb300;
+}
+
+.small-input {
+  width: 70%;
+  padding: 0.3rem;
+  font-size: 0.85rem;
 }
 
 .error {
   color: red;
-  margin-top: 1rem;
   font-size: 0.9rem;
 }
 
 .success {
   color: green;
-  margin-top: 1rem;
   font-size: 0.9rem;
+}
+
+label {
+  margin-top: 15px;
+}
+
+.avatar-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.update-avatar-btn {
+  background-color: #ffb300;
+  color: black;
+  border: none;
+  border-radius: 8px;
+  padding: 0.8rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.update-avatar-btn:hover {
+  background-color: #ffbb40;
 }
 </style>
