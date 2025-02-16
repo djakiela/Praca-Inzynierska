@@ -12,7 +12,7 @@
       <h1>Edytuj Profil</h1>
 
       <!-- Sekcja Avatara -->
-      <div class="avatar-container">
+      <section class="avatar-container">
         <img
           v-if="avatarUrl"
           :src="avatarUrl"
@@ -32,7 +32,7 @@
             Usuń avatar
           </button>
         </div>
-      </div>
+      </section>
 
       <!-- Sekcja Nazwy Użytkownika -->
       <form @submit.prevent="updateUsername" class="profile-form">

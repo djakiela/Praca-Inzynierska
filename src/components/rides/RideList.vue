@@ -28,31 +28,39 @@
       <div
         v-for="(ride, index) in paginatedRides"
         :key="ride.id"
-        class="ride-item"
+        class="content"
       >
         <h2>Przejazd: {{ ride.departure }} → {{ ride.destination }}</h2>
-        <p>
-          <strong>Dodano przez:</strong>
-          {{ userNames[ride.userId] || "Nieznany użytkownik" }}
-        </p>
+
+        <!-- Sekcja użytkownika z avatarem -->
+        <div class="user-info">
+          <p>
+            <strong>Dodano przez:</strong>
+            {{ userNames[ride.userId] || "Nieznany użytkownik" }}
+          </p>
+          <img
+            :src="userAvatars[ride.userId] || defaultAvatar"
+            alt="Avatar"
+            class="avatar"
+          />
+        </div>
+
         <p><strong>Data:</strong> {{ formatDate(ride.dateTime) }}</p>
         <p><strong>Miejsca:</strong> {{ ride.seats }}</p>
 
-        <!-- Przyciski rezerwacji lub komunikat dla właściciela przejazdu -->
-        <div>
+        <div class="actions">
           <template v-if="ride.userId === currentUser?.uid">
             <p class="info-message">
               Ten przejazd należy do Ciebie. Możesz go sprawdzić w sekcji
               <strong>Moje przejazdy</strong>.
             </p>
-            <button @click="goToMyRides" class="my-rides-btn">
+            <button @click="goToMyRides" class="primary">
               Przejdź do moich przejazdów
             </button>
           </template>
 
           <template v-else>
-            <!-- Formularz wyboru liczby miejsc -->
-            <div v-if="!reservationStatus[index]">
+            <div v-if="!reservationStatus[index]" class="reservation-section">
               <label>Liczba miejsc do rezerwacji:</label>
               <input
                 class="seats-input"
@@ -67,8 +75,8 @@
               </p>
             </div>
 
-            <!-- Przyciski rezerwacji -->
             <button
+              class="primary"
               @click="
                 reservationStatus[index]
                   ? cancelReservation(index, ride.id)
@@ -82,7 +90,6 @@
           </template>
         </div>
 
-        <!-- Szczegóły przejazdu -->
         <div class="details" v-if="reservationStatus[index]">
           <p>
             <strong>Numer telefonu:</strong>
@@ -96,12 +103,11 @@
             <strong>Dokładny adres dojazdu:</strong>
             {{ ride.exactDestinationAddress }}
           </p>
-          <button @click="toggleMap(index, ride.id)">
+          <button @click="toggleMap(index, ride.id)" class="secondary">
             {{ mapVisibility[index] ? "Ukryj mapę" : "Wizualizacja trasy" }}
           </button>
         </div>
 
-        <!-- Box z mapą -->
         <div
           v-if="mapVisibility[index]"
           :id="'map-container-' + ride.id"
@@ -109,7 +115,6 @@
         ></div>
       </div>
 
-      <!-- Paginacja na dole -->
       <nav v-if="totalPages > 1" class="pagination">
         <button @click="prevPage" :disabled="currentPage === 1">&lt;</button>
         <button
@@ -146,6 +151,11 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import {
+  getStorage,
+  ref as storageRef,
+  getDownloadURL,
+} from "firebase/storage";
 
 export default {
   name: "RideList",
@@ -155,6 +165,7 @@ export default {
     const currentUser = auth.currentUser;
     const rides = ref([]);
     const userNames = ref({});
+    const userAvatars = ref({});
     const reservationSeats = ref([]);
     const validationErrors = ref([]);
     const reservationStatus = ref([]);
@@ -165,6 +176,8 @@ export default {
     const itemsPerPage = 6;
     const userPhones = ref({});
     const router = useRouter();
+    const defaultAvatar = "/avatar.png";
+    const storage = getStorage();
 
     const visualizeRoute = async (rideId) => {
       try {
@@ -226,6 +239,7 @@ export default {
         console.error("Błąd podczas wizualizacji trasy:", err);
       }
     };
+
     const toggleMap = (index, rideId) => {
       mapVisibility.value[index] = !mapVisibility.value[index];
       if (mapVisibility.value[index]) {
@@ -275,8 +289,7 @@ export default {
         mapVisibility.value = new Array(rides.value.length).fill(false);
 
         const userIds = [...new Set(rides.value.map((ride) => ride.userId))];
-        await fetchUserNamesAndPhones(userIds);
-
+        await fetchUserNamesAndAvatars(userIds);
         if (currentUser) await fetchUserReservations();
       } catch (err) {
         error.value = "Nie udało się pobrać przejazdów: " + err.message;
@@ -285,24 +298,34 @@ export default {
       }
     };
 
-    const fetchUserNamesAndPhones = async (userIds) => {
+    const fetchUserNamesAndAvatars = async (userIds) => {
       const userFetchPromises = userIds.map(async (id) => {
         try {
           const userDoc = await getDoc(doc(db, "users", id));
           if (userDoc.exists()) {
             const userData = userDoc.data();
             userNames.value[id] = userData.username || "Nieznany użytkownik";
-            userPhones.value[id] =
-              userData.phonenumber || "Brak numeru telefonu";
+
+            // Pobieramy avatar użytkownika z Firebase Storage
+            const avatarPath = `imgu/${id}.jpg`; // Avatar w katalogu `imgu/`
+            const avatarRef = storageRef(storage, avatarPath);
+
+            try {
+              const avatarUrl = await getDownloadURL(avatarRef);
+              userAvatars.value[id] = avatarUrl;
+            } catch {
+              userAvatars.value[id] = defaultAvatar; // Jeśli avatar nie istnieje, używamy domyślnego
+            }
           } else {
             userNames.value[id] = "Nieznany użytkownik";
-            userPhones.value[id] = "Brak numeru telefonu";
+            userAvatars.value[id] = defaultAvatar;
           }
         } catch {
           userNames.value[id] = "Nieznany użytkownik";
-          userPhones.value[id] = "Brak numeru telefonu";
+          userAvatars.value[id] = defaultAvatar;
         }
       });
+
       await Promise.all(userFetchPromises);
     };
 
@@ -419,6 +442,8 @@ export default {
       error,
       currentPage,
       totalPages,
+      defaultAvatar,
+      userAvatars,
       goToMyRides,
       nextPage,
       prevPage,
@@ -436,180 +461,142 @@ export default {
 
 <style scoped>
 .page {
-  padding: 30px 0;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  font-family: Arial, Helvetica, sans-serif;
+  padding-bottom: 30px;
+  align-items: center;
+  background-color: #222;
+  color: white;
 }
 
 .ride-list {
-  background-color: white;
-  border-radius: 15px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  font-family: Arial, Helvetica, sans-serif;
   padding: 20px;
-  width: 700px;
-  max-width: 1000px;
+  max-width: 800px;
   margin: 0 auto;
-}
-
-.seats-input {
-  width: 30px;
+  background: rgba(51, 51, 51, 0.9);
+  border-radius: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 h1 {
   text-align: center;
-  color: #333;
-  font-size: 2rem;
-  margin-bottom: 20px;
+  color: white;
+  text-shadow: 0px 0px 10px rgba(0, 0, 0, 0.8);
 }
 
-.ride-item {
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 15px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.ride-item h2 {
-  font-size: 1.5rem;
-  color: #05445e;
-  margin-bottom: 10px;
-}
-
-.ride-item p {
-  font-size: 1rem;
-  color: #54626f;
-  margin: 5px 0;
-}
-
-.ride-item strong {
-  color: #333;
-}
-
-.inputs label {
-  font-weight: 500;
-  color: #54626f;
-}
-
-.inputs input {
-  width: 100%;
-  padding: 0.6rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 1rem;
-  margin-top: 5px;
-  transition: border-color 0.2s ease;
-}
-
-.inputs input:focus {
-  border-color: #3b444b;
+.loading {
+  text-align: center;
+  color: #ffb300;
 }
 
 .error {
+  text-align: center;
   color: red;
-  font-size: 0.9rem;
-  margin-top: 5px;
+}
+
+.no-rides {
+  text-align: center;
+  color: #ccc;
+}
+
+.content {
+  background: rgba(34, 34, 34, 0.9);
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.content h2 {
+  margin: 0 0 10px;
+  color: #ffb300;
+  text-shadow: 0px 0px 8px rgba(255, 179, 0, 0.8);
+}
+
+.content p {
+  margin: 5px 0;
+  color: #ddd;
+}
+
+.content strong {
+  color: #ffbb40;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #ffb300;
 }
 
 button {
-  padding: 0.8rem 1.5rem;
-  font-size: 1rem;
+  padding: 10px 15px;
+  margin: 10px 0px 15px;
   border: none;
-  border-radius: 8px;
+  border-radius: 5px;
+  background-color: #ffb300;
+  color: black;
+  font-size: 1.1rem;
+  font-weight: bold;
   cursor: pointer;
   transition:
-    background-color 0.3s ease,
-    transform 0.2s ease;
+    background-color 0.3s,
+    transform 0.2s,
+    box-shadow 0.3s;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 button:hover {
-  transform: translateY(-3px);
+  background-color: #ffbb40;
 }
 
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
+button:active {
+  background-color: #de9b00;
+  transform: scale(0.95);
 }
 
-button:nth-of-type(1) {
-  background-color: #189ab4;
-  color: white;
-}
-
-button:nth-of-type(1):hover {
-  background-color: #00b3b8;
-}
-
-button:nth-of-type(2) {
-  background-color: #05445e;
-  color: white;
-}
-
-button:nth-of-type(2):hover {
-  background-color: #006b7f;
-}
-
-.details {
-  margin-top: 15px;
-  padding: 15px;
-  border-top: 3px solid #c9c9c9;
-  background-color: white;
-  border-radius: 8px;
-  padding-left: 0;
-}
-
-.details p {
-  font-size: 0.95rem;
-  color: #3b444b;
-}
-
-.pagination {
+.actions {
+  margin-top: 10px;
   display: flex;
   justify-content: center;
-  align-items: center;
-  margin: 20px 0;
+  gap: 10px;
 }
 
-.pagination button {
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  margin: 0 5px;
-  padding: 5px 10px;
-  font-size: 1rem;
-  color: #54626f;
-  cursor: pointer;
-  transition:
-    background-color 0.3s ease,
-    transform 0.2s ease;
+button.primary {
+  background-color: #ff9f00;
 }
 
-.pagination button:hover {
-  background-color: #189ab4;
-  color: white;
-  transform: translateY(-2px);
+button.primary:hover {
+  background-color: #ffae40;
 }
 
-.pagination button:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
+button.primary:active {
+  background-color: #d98b00;
 }
 
-.pagination button.active {
-  background-color: #05445e;
-  color: white;
-  font-weight: bold;
+button.secondary {
+  background-color: #ffcc66;
+  color: black;
+}
+
+button.secondary:hover {
+  background-color: #ffdb8a;
+}
+
+button.secondary:active {
+  background-color: #e6b354;
 }
 
 .map-container {
-  width: 100%;
-  height: 400px;
-  margin-top: 20px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  height: 300px;
+  margin-top: 10px;
+  border: 1px solid #333;
+  border-radius: 5px;
 }
 </style>
