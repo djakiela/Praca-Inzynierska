@@ -28,47 +28,46 @@
       <div
         v-for="(ride, index) in paginatedRides"
         :key="ride.id"
-        class="content"
+        class="ride-item"
       >
         <h2>Przejazd: {{ ride.departure }} → {{ ride.destination }}</h2>
 
-        <!-- Sekcja użytkownika z avatarem -->
         <div class="user-info">
-          <p>
-            <strong>Dodano przez:</strong>
-            {{ userNames[ride.userId] || "Nieznany użytkownik" }}
-          </p>
           <img
             :src="userAvatars[ride.userId] || defaultAvatar"
             alt="Avatar"
             class="avatar"
           />
+          <p>
+            <strong>Dodano przez:</strong>
+            {{ userNames[ride.userId] || "Nieznany użytkownik" }}
+          </p>
         </div>
 
         <p><strong>Data:</strong> {{ formatDate(ride.dateTime) }}</p>
         <p><strong>Miejsca:</strong> {{ ride.seats }}</p>
 
-        <div class="actions">
+        <div>
           <template v-if="ride.userId === currentUser?.uid">
             <p class="info-message">
               Ten przejazd należy do Ciebie. Możesz go sprawdzić w sekcji
               <strong>Moje przejazdy</strong>.
             </p>
-            <button @click="goToMyRides" class="primary">
+            <button @click="goToMyRides" class="my-rides-btn">
               Przejdź do moich przejazdów
             </button>
           </template>
 
           <template v-else>
-            <div v-if="!reservationStatus[index]" class="reservation-section">
+            <div v-if="!reservationStatus[index]" class="reservation-box">
               <label>Liczba miejsc do rezerwacji:</label>
               <input
                 class="seats-input"
                 type="number"
-                v-model.number="reservationSeats[index]"
+                v-model.number="reservationSeats[ride.id]"
                 :max="ride.seats"
                 :min="1"
-                @input="validateSeats(index, ride.seats)"
+                @input="validateSeats(ride.id, ride.seats)"
               />
               <p v-if="validationErrors[index]" class="error">
                 {{ validationErrors[index] }}
@@ -76,21 +75,20 @@
             </div>
 
             <button
-              class="primary"
               @click="
-                reservationStatus[index]
-                  ? cancelReservation(index, ride.id)
-                  : makeReservation(index, ride.id)
+                reservationStatus[ride.id]
+                  ? cancelReservation(ride.id)
+                  : makeReservation(ride.id)
               "
             >
               {{
-                reservationStatus[index] ? "Odwołaj rezerwację" : "Zarezerwuj"
+                reservationStatus[ride.id] ? "Odwołaj rezerwację" : "Zarezerwuj"
               }}
             </button>
           </template>
         </div>
 
-        <div class="details" v-if="reservationStatus[index]">
+        <div class="details" v-if="reservationStatus[ride.id]">
           <p>
             <strong>Numer telefonu:</strong>
             {{ userPhones[ride.userId] || "Brak numeru telefonu" }}
@@ -103,13 +101,12 @@
             <strong>Dokładny adres dojazdu:</strong>
             {{ ride.exactDestinationAddress }}
           </p>
-          <button @click="toggleMap(index, ride.id)" class="secondary">
-            {{ mapVisibility[index] ? "Ukryj mapę" : "Wizualizacja trasy" }}
+          <button @click="toggleMap(ride.id)">
+            {{ mapVisibility[ride.id] ? "Ukryj mapę" : "Wizualizacja trasy" }}
           </button>
         </div>
-
         <div
-          v-if="mapVisibility[index]"
+          v-if="mapVisibility[ride.id]"
           :id="'map-container-' + ride.id"
           class="map-container"
         ></div>
@@ -132,7 +129,6 @@
     </div>
   </div>
 </template>
-
 <script>
 /* global google */
 import { ref, computed, onMounted } from "vue";
@@ -240,9 +236,10 @@ export default {
       }
     };
 
-    const toggleMap = (index, rideId) => {
-      mapVisibility.value[index] = !mapVisibility.value[index];
-      if (mapVisibility.value[index]) {
+    const toggleMap = (rideId) => {
+      mapVisibility.value[rideId] = !mapVisibility.value[rideId];
+
+      if (mapVisibility.value[rideId]) {
         visualizeRoute(rideId); // Wyświetl mapę
       } else {
         const mapElement = document.getElementById(`map-container-${rideId}`);
@@ -275,18 +272,26 @@ export default {
 
     const fetchRides = async () => {
       try {
+        loading.value = true;
         const q = query(collection(db, "rides"), orderBy("dateTime", "asc"));
         const querySnapshot = await getDocs(q);
 
-        rides.value = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        rides.value = querySnapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() }))
+          .filter((ride) => ride.seats > 0); // Filtrujemy przejazdy z 0 miejscami
 
-        reservationSeats.value = new Array(rides.value.length).fill(1);
-        validationErrors.value = new Array(rides.value.length).fill("");
-        reservationStatus.value = new Array(rides.value.length).fill(false);
-        mapVisibility.value = new Array(rides.value.length).fill(false);
+        // Inicjalizacja stanu dla rezerwacji
+        reservationSeats.value = {};
+        reservationStatus.value = {};
+        mapVisibility.value = {};
+
+        for (const ride of rides.value) {
+          if (!(ride.id in reservationSeats.value)) {
+            reservationSeats.value[ride.id] = 1;
+          }
+          reservationStatus.value[ride.id] = false;
+          mapVisibility.value[ride.id] = false;
+        }
 
         const userIds = [...new Set(rides.value.map((ride) => ride.userId))];
         await fetchUserNamesAndAvatars(userIds);
@@ -305,6 +310,8 @@ export default {
           if (userDoc.exists()) {
             const userData = userDoc.data();
             userNames.value[id] = userData.username || "Nieznany użytkownik";
+            userPhones.value[id] =
+              userData.phonenumber || "Brak numeru telefonu";
 
             // Pobieramy avatar użytkownika z Firebase Storage
             const avatarPath = `imgu/${id}.jpg`; // Avatar w katalogu `imgu/`
@@ -319,10 +326,12 @@ export default {
           } else {
             userNames.value[id] = "Nieznany użytkownik";
             userAvatars.value[id] = defaultAvatar;
+            userPhones.value[id] = "Brak numeru telefonu";
           }
         } catch {
           userNames.value[id] = "Nieznany użytkownik";
           userAvatars.value[id] = defaultAvatar;
+          userPhones.value[id] = "Brak numeru telefonu";
         }
       });
 
@@ -347,75 +356,112 @@ export default {
         }
       });
     };
-
-    const makeReservation = async (index, rideId) => {
-      const reservedSeats = reservationSeats.value[index];
+    const makeReservation = async (rideId) => {
       try {
+        const reservedSeats = reservationSeats.value[rideId];
+
+        if (!reservedSeats || reservedSeats <= 0) {
+          console.error("Niepoprawna liczba miejsc do rezerwacji.");
+          return;
+        }
+
         const rideRef = doc(db, "rides", rideId);
         const rideDoc = await getDoc(rideRef);
 
-        if (rideDoc.exists()) {
-          const currentSeats = rideDoc.data().seats;
-          if (currentSeats >= reservedSeats) {
-            await updateDoc(rideRef, { seats: currentSeats - reservedSeats });
+        if (!rideDoc.exists()) {
+          console.error("Przejazd nie istnieje.");
+          return;
+        }
 
-            await setDoc(
-              doc(db, "reservations", `${currentUser.uid}_${rideId}`),
-              {
-                rideId,
-                userId: currentUser.uid,
-                seats: reservedSeats,
-              },
-            );
+        const currentSeats = rideDoc.data().seats;
 
-            rides.value[index].seats -= reservedSeats;
-            reservationStatus.value[index] = true;
-          }
+        if (currentSeats < reservedSeats) {
+          console.error("Nie ma wystarczającej liczby miejsc.");
+          return;
+        }
+
+        // Aktualizacja liczby miejsc w Firebase
+        await updateDoc(rideRef, { seats: currentSeats - reservedSeats });
+
+        // Zapisanie rezerwacji w Firebase
+        await setDoc(doc(db, "reservations", `${currentUser.uid}_${rideId}`), {
+          rideId,
+          userId: currentUser.uid,
+          seats: reservedSeats,
+        });
+
+        // Aktualizacja lokalnego stanu
+        const rideIndex = rides.value.findIndex((r) => r.id === rideId);
+        if (rideIndex !== -1) {
+          rides.value[rideIndex].seats -= reservedSeats;
+        }
+
+        // Oznaczenie rezerwacji jako aktywnej
+        reservationStatus.value[rideId] = true;
+
+        console.log(
+          `Zarezerwowano ${reservedSeats} miejsca dla przejazdu ${rideId}`,
+        );
+
+        // Jeśli nie ma więcej miejsc, usuń przejazd z listy
+        if (rides.value[rideIndex].seats === 0) {
+          rides.value = rides.value.filter((r) => r.id !== rideId);
+          delete reservationStatus.value[rideId];
         }
       } catch (err) {
         console.error("Błąd podczas rezerwacji:", err);
       }
     };
 
-    const cancelReservation = async (index, rideId) => {
-      const reservedSeats = reservationSeats.value[index];
+    const cancelReservation = async (rideId) => {
       try {
-        const rideRef = doc(db, "rides", rideId);
-        const rideDoc = await getDoc(rideRef);
+        const reservationRef = doc(
+          db,
+          "reservations",
+          `${currentUser.uid}_${rideId}`,
+        );
+        const reservationDoc = await getDoc(reservationRef);
 
-        if (rideDoc.exists()) {
-          const currentSeats = rideDoc.data().seats;
+        if (reservationDoc.exists()) {
+          const reservedSeats = reservationDoc.data().seats;
+          const rideRef = doc(db, "rides", rideId);
+          const rideDoc = await getDoc(rideRef);
 
-          await updateDoc(rideRef, { seats: currentSeats + reservedSeats });
+          if (rideDoc.exists()) {
+            const currentSeats = rideDoc.data().seats;
+            await updateDoc(rideRef, { seats: currentSeats + reservedSeats });
 
-          await deleteDoc(
-            doc(db, "reservations", `${currentUser.uid}_${rideId}`),
-          );
+            await deleteDoc(reservationRef);
 
-          rides.value[index].seats += reservedSeats;
-          reservationStatus.value[index] = false;
+            if (rides.value.find((r) => r.id === rideId)) {
+              rides.value.find((r) => r.id === rideId).seats += reservedSeats;
+            }
 
-          mapVisibility.value[index] = false;
+            reservationStatus.value[rideId] = false;
 
-          const mapElement = document.getElementById(`map-container-${rideId}`);
-          if (mapElement) mapElement.innerHTML = "";
+            // Ukrycie mapy po anulowaniu rezerwacji
+            mapVisibility.value[rideId] = false;
+            const mapElement = document.getElementById(
+              `map-container-${rideId}`,
+            );
+            if (mapElement) mapElement.innerHTML = "";
+          }
         }
       } catch (err) {
-        console.error("Błąd podczas odwoływania rezerwacji:", err);
+        console.error("Błąd podczas anulowania rezerwacji:", err);
       }
     };
-
-    const validateSeats = (index, availableSeats) => {
-      if (reservationSeats.value[index] > availableSeats) {
-        validationErrors.value[index] =
+    const validateSeats = (rideId, availableSeats) => {
+      if (reservationSeats.value[rideId] > availableSeats) {
+        validationErrors.value[rideId] =
           `Nie można zarezerwować więcej niż ${availableSeats} miejsc.`;
-        reservationSeats.value[index] = availableSeats;
-      } else if (reservationSeats.value[index] < 1) {
-        validationErrors.value[index] =
+        reservationSeats.value[rideId] = availableSeats;
+      } else if (reservationSeats.value[rideId] < 1) {
+        validationErrors.value[rideId] =
           "Musisz zarezerwować przynajmniej 1 miejsce.";
-        reservationSeats.value[index] = 1;
+        reservationSeats.value[rideId] = 1;
       } else {
-        validationErrors.value[index] = "";
+        validationErrors.value[rideId] = "";
       }
     };
 
@@ -424,7 +470,7 @@ export default {
     };
 
     const goToMyRides = () => {
-      router.push("/my-rides"); // Zakładając, że ścieżka to '/my-rides'
+      router.push("/my-rides");
     };
 
     onMounted(fetchRides);
@@ -462,20 +508,22 @@ export default {
 <style scoped>
 .page {
   min-height: 100vh;
-  padding-bottom: 30px;
   align-items: center;
-  background-color: #222;
   color: white;
+  display: flex;
+  justify-content: center;
 }
 
 .ride-list {
   font-family: Arial, Helvetica, sans-serif;
-  padding: 20px;
-  max-width: 800px;
-  margin: 0 auto;
-  background: rgba(51, 51, 51, 0.9);
-  border-radius: 20px;
+  max-width: 1000px;
+  width: 100%;
+  background: rgba(51, 51, 51, 0.95);
+  border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  padding-right: 45px;
+  margin-bottom: 25px;
 }
 
 h1 {
@@ -484,42 +532,62 @@ h1 {
   text-shadow: 0px 0px 10px rgba(0, 0, 0, 0.8);
 }
 
-.loading {
-  text-align: center;
-  color: #ffb300;
-}
-
-.error {
-  text-align: center;
-  color: red;
-}
-
-.no-rides {
-  text-align: center;
-  color: #ccc;
-}
-
-.content {
+.ride-item {
   background: rgba(34, 34, 34, 0.9);
-  padding: 15px;
-  margin-bottom: 15px;
+  padding: 25px;
+  margin-bottom: 20px;
   border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  min-height: 350px;
+  min-width: 500px;
+  width: 95%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-.content h2 {
+.ride-item h2 {
   margin: 0 0 10px;
   color: #ffb300;
   text-shadow: 0px 0px 8px rgba(255, 179, 0, 0.8);
 }
 
-.content p {
+.ride-item p {
   margin: 5px 0;
   color: #ddd;
 }
 
-.content strong {
+.ride-item strong {
   color: #ffbb40;
+}
+
+.details {
+  background: rgba(40, 40, 40, 0.9);
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.pagination button {
+  background-color: #ffb300;
+  border: none;
+  padding: 10px 15px;
+  margin: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.pagination button:hover {
+  background-color: #ffbb40;
+}
+
+.pagination button.active {
+  background-color: #de9b00;
 }
 
 .user-info {
@@ -529,15 +597,15 @@ h1 {
 }
 
 .avatar {
-  width: 40px;
-  height: 40px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   border: 2px solid #ffb300;
 }
 
 button {
-  padding: 10px 15px;
-  margin: 10px 0px 15px;
+  padding: 12px 18px;
+  margin: 12px 0px 15px;
   border: none;
   border-radius: 5px;
   background-color: #ffb300;
@@ -559,38 +627,6 @@ button:hover {
 button:active {
   background-color: #de9b00;
   transform: scale(0.95);
-}
-
-.actions {
-  margin-top: 10px;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
-
-button.primary {
-  background-color: #ff9f00;
-}
-
-button.primary:hover {
-  background-color: #ffae40;
-}
-
-button.primary:active {
-  background-color: #d98b00;
-}
-
-button.secondary {
-  background-color: #ffcc66;
-  color: black;
-}
-
-button.secondary:hover {
-  background-color: #ffdb8a;
-}
-
-button.secondary:active {
-  background-color: #e6b354;
 }
 
 .map-container {
