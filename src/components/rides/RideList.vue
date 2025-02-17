@@ -278,13 +278,9 @@ export default {
 
         rides.value = querySnapshot.docs
           .map((doc) => ({ id: doc.id, ...doc.data() }))
-          .filter((ride) => ride.seats > 0); // Filtrujemy przejazdy z 0 miejscami
+          .filter((ride) => ride.seats > 0);
 
         // Inicjalizacja stanu dla rezerwacji
-        reservationSeats.value = {};
-        reservationStatus.value = {};
-        mapVisibility.value = {};
-
         for (const ride of rides.value) {
           if (!(ride.id in reservationSeats.value)) {
             reservationSeats.value[ride.id] = 1;
@@ -347,15 +343,11 @@ export default {
 
       querySnapshot.forEach((doc) => {
         const reservation = doc.data();
-        const rideIndex = rides.value.findIndex(
-          (ride) => ride.id === reservation.rideId,
-        );
-        if (rideIndex !== -1) {
-          reservationStatus.value[rideIndex] = true;
-          reservationSeats.value[rideIndex] = reservation.seats;
-        }
+        reservationStatus.value[reservation.rideId] = true;
+        reservationSeats.value[reservation.rideId] = reservation.seats;
       });
     };
+
     const makeReservation = async (rideId) => {
       try {
         const reservedSeats = reservationSeats.value[rideId];
@@ -380,30 +372,21 @@ export default {
           return;
         }
 
-        // Aktualizacja liczby miejsc w Firebase
         await updateDoc(rideRef, { seats: currentSeats - reservedSeats });
 
-        // Zapisanie rezerwacji w Firebase
         await setDoc(doc(db, "reservations", `${currentUser.uid}_${rideId}`), {
           rideId,
           userId: currentUser.uid,
           seats: reservedSeats,
         });
 
-        // Aktualizacja lokalnego stanu
         const rideIndex = rides.value.findIndex((r) => r.id === rideId);
         if (rideIndex !== -1) {
           rides.value[rideIndex].seats -= reservedSeats;
         }
 
-        // Oznaczenie rezerwacji jako aktywnej
         reservationStatus.value[rideId] = true;
 
-        console.log(
-          `Zarezerwowano ${reservedSeats} miejsca dla przejazdu ${rideId}`,
-        );
-
-        // Jeśli nie ma więcej miejsc, usuń przejazd z listy
         if (rides.value[rideIndex].seats === 0) {
           rides.value = rides.value.filter((r) => r.id !== rideId);
           delete reservationStatus.value[rideId];
@@ -439,7 +422,6 @@ export default {
 
             reservationStatus.value[rideId] = false;
 
-            // Ukrycie mapy po anulowaniu rezerwacji
             mapVisibility.value[rideId] = false;
             const mapElement = document.getElementById(
               `map-container-${rideId}`,
@@ -451,6 +433,7 @@ export default {
         console.error("Błąd podczas anulowania rezerwacji:", err);
       }
     };
+
     const validateSeats = (rideId, availableSeats) => {
       if (reservationSeats.value[rideId] > availableSeats) {
         validationErrors.value[rideId] =
