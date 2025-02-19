@@ -1,5 +1,5 @@
 <template>
-  <body class="edit-profile-page">
+  <div class="edit-profile-page">
     <!-- Alert do wpisania aktualnego hasła -->
     <AlertPage3
       v-if="showAlert"
@@ -8,7 +8,7 @@
       @close="handleAlertClose"
     />
 
-    <main class="profile-card">
+    <div class="profile-card">
       <h1>Edytuj Profil</h1>
 
       <!-- Sekcja Avatara -->
@@ -35,7 +35,7 @@
       </section>
 
       <!-- Sekcja Nazwy Użytkownika -->
-      <section @submit.prevent="updateUsername" class="profile-form">
+      <form @submit.prevent="updateUsername" class="profile-form">
         <div class="inputs">
           <label for="username">Nazwa użytkownika:</label>
           <input
@@ -46,16 +46,13 @@
           />
         </div>
         <div v-if="usernameError" class="error">{{ usernameError }}</div>
-        <div v-if="usernameAvailable" class="success">
-          Nazwa użytkownika jest dostępna.
-        </div>
         <button type="submit" class="update-btn">
           Zmień nazwę użytkownika
         </button>
-      </section>
+      </form>
 
       <!-- Sekcja Hasła -->
-      <section @submit.prevent="requestPasswordChange" class="profile-form">
+      <form @submit.prevent="requestPasswordChange" class="profile-form">
         <div class="inputs">
           <label for="newPassword">Nowe Hasło:</label>
           <input
@@ -65,13 +62,13 @@
           />
         </div>
         <button type="submit" class="update-btn">Zmień hasło</button>
-      </section>
+      </form>
 
       <!-- Komunikaty -->
       <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
       <p v-if="successMessage" class="success">{{ successMessage }}</p>
-    </main>
-  </body>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -492,13 +489,11 @@ export default {
 .error {
   color: red;
   font-size: 0.9rem;
-  margin-bottom: 20px;
 }
 
 .success {
   color: green;
   font-size: 0.9rem;
-  margin-bottom: 20px;
 }
 
 label {
