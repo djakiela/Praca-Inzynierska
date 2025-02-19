@@ -37,9 +37,15 @@
         >
           <span>Panel Użytkownika</span>
           <div v-show="isUserDropdownActive" class="drop-box">
-            <router-link to="/add-ride">Dodaj przejazd</router-link>
-            <router-link to="/my-reservation">Moje rezerwacje</router-link>
-            <router-link to="/my-rides">Moje przejazdy</router-link>
+            <router-link to="/add-ride" @click="scrollToTop"
+              >Dodaj przejazd</router-link
+            >
+            <router-link to="/my-reservation" @click="scrollToTop"
+              >Moje rezerwacje</router-link
+            >
+            <router-link to="/my-rides" @click="scrollToTop"
+              >Moje przejazdy</router-link
+            >
           </div>
         </div>
         <div
@@ -133,6 +139,12 @@ export default {
       hideProfileDropdown,
       logout,
     };
+  },
+
+  methods: {
+    scrollToTop() {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    },
   },
 };
 </script>

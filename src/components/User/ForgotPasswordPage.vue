@@ -1,6 +1,6 @@
 <template>
-  <div class="fpass-page">
-    <div class="fpass-card">
+  <body class="fpass-page">
+    <main class="fpass-card">
       <h1>Przypomnienie Hasła</h1>
       <form @submit.prevent="sendPasswordReset">
         <div>
@@ -19,8 +19,8 @@
         :message="alertMessage"
         @close="handleAlertClose"
       />
-    </div>
-  </div>
+    </main>
+  </body>
 </template>
 
 <script>
@@ -66,98 +66,130 @@ export default {
 
 <style scoped>
 .fpass-page {
-  align-content: center;
-  display: center;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
   justify-content: center;
+  background-color: #222;
   font-family: Arial, Helvetica, sans-serif;
-  background: linear-gradient(150deg, #05445e, #189ab4, #d4f1f4);
-  height: 53.3em;
-}
-
-.fpass-page h1 {
-  text-align: center;
-  color: #333;
-}
-.fpass-page form div {
-  margin-bottom: 10px;
-}
-.fpass-page form label {
-  display: block;
-  margin-bottom: 5px;
-  text-align: left;
-}
-.fpass-page form input {
-  width: 100%;
-  padding: 8px;
-  box-sizing: border-box;
-  border: 1px solid #ccc;
-  border-radius: 5px;
 }
 
 .fpass-card {
-  background-color: white;
+  background: rgba(34, 34, 34, 0.9);
   padding: 2rem;
   border-radius: 15px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
   text-align: center;
-  width: 320px;
-  height: 350px;
-  margin: 0 auto;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  width: 340px;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .fpass-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+}
+
+.fpass-card h1 {
+  color: #ffb300;
+  text-shadow: 0px 0px 8px rgba(255, 179, 0, 0.8);
+  font-size: 1.5rem;
+}
+
+form div {
+  margin-bottom: 12px;
+}
+
+form label {
+  display: block;
+  margin-bottom: 5px;
+  text-align: left;
+  color: #ddd;
+  font-weight: bold;
+}
+
+form input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #666;
+  background-color: #333;
+  color: white;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+form input:focus {
+  border-color: #ffb300;
+  outline: none;
+  box-shadow: 0 0 5px rgba(255, 179, 0, 0.7);
 }
 
 .btn-passchange {
   width: 100%;
-  padding: 0.8rem;
-  background-color: #189ab4;
-  color: white;
+  padding: 12px;
+  background-color: #ffb300;
+  color: black;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
+  font-weight: bold;
   margin-top: 1rem;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition:
+    background-color 0.3s ease,
+    transform 0.2s ease;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 .btn-passchange:hover {
-  background-color: #00b3b8;
+  background-color: #ffbb40;
   transform: translateY(-3px);
+}
+
+.btn-passchange:active {
+  background-color: #de9b00;
+  transform: scale(0.95);
 }
 
 .btn-link {
   width: 100%;
-  padding: 0.8rem;
-  background-color: #05445e;
+  padding: 12px;
+  background-color: #444;
   color: white;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
   margin-top: 0.5rem;
   cursor: pointer;
+  transition:
+    background-color 0.3s ease,
+    transform 0.2s ease;
   display: flex;
   justify-content: center;
   align-items: center;
-  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .btn-link:hover {
-  background-color: #006b7f;
+  background-color: #666;
   transform: translateY(-3px);
 }
 
+.btn-link:active {
+  background-color: #555;
+}
+
 .message {
-  color: green;
+  color: #ffbb40;
   text-align: center;
   margin-top: 10px;
+  font-weight: bold;
 }
+
 .error {
   color: red;
   text-align: center;
   margin-top: 10px;
+  font-weight: bold;
 }
 </style>

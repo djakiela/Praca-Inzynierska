@@ -1,6 +1,6 @@
 <template>
-  <div class="page">
-    <div class="ride-list">
+  <body class="page">
+    <form class="ride-list">
       <h1>Lista przejazdów</h1>
 
       <!-- Paginacja na górze -->
@@ -32,7 +32,7 @@
       >
         <h2>Przejazd: {{ ride.departure }} → {{ ride.destination }}</h2>
 
-        <div class="user-info">
+        <section class="user-info">
           <img
             :src="userAvatars[ride.userId] || defaultAvatar"
             alt="Avatar"
@@ -42,12 +42,12 @@
             <strong>Dodano przez:</strong>
             {{ userNames[ride.userId] || "Nieznany użytkownik" }}
           </p>
-        </div>
+        </section>
 
         <p><strong>Data:</strong> {{ formatDate(ride.dateTime) }}</p>
         <p><strong>Miejsca:</strong> {{ ride.seats }}</p>
 
-        <div>
+        <section>
           <template v-if="ride.userId === currentUser?.uid">
             <p class="info-message">
               Ten przejazd należy do Ciebie. Możesz go sprawdzić w sekcji
@@ -86,9 +86,9 @@
               }}
             </button>
           </template>
-        </div>
+        </section>
 
-        <div class="details" v-if="reservationStatus[ride.id]">
+        <section class="details" v-if="reservationStatus[ride.id]">
           <p>
             <strong>Numer telefonu:</strong>
             {{ userPhones[ride.userId] || "Brak numeru telefonu" }}
@@ -104,7 +104,7 @@
           <button @click="toggleMap(ride.id)">
             {{ mapVisibility[ride.id] ? "Ukryj mapę" : "Wizualizacja trasy" }}
           </button>
-        </div>
+        </section>
         <div
           v-if="mapVisibility[ride.id]"
           :id="'map-container-' + ride.id"
@@ -126,9 +126,10 @@
           &gt;
         </button>
       </nav>
-    </div>
-  </div>
+    </form>
+  </body>
 </template>
+
 <script>
 /* global google */
 import { ref, computed, onMounted } from "vue";
@@ -490,7 +491,6 @@ export default {
 
 <style scoped>
 .page {
-  min-height: 100vh;
   align-items: center;
   color: white;
   display: flex;
@@ -507,6 +507,20 @@ export default {
   padding: 20px;
   padding-right: 45px;
   margin-bottom: 25px;
+}
+
+.seats-input {
+  width: 30px;
+  margin-left: 10px;
+  background: #2b2b2b !important;
+  color: white !important;
+  outline: none;
+  transition: border-color 0.2s ease;
+  border-radius: 8px;
+}
+
+.seats-input:focus {
+  border-color: #ffb300;
 }
 
 h1 {

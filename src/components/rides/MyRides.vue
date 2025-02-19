@@ -1,9 +1,9 @@
 <template>
-  <div class="page">
+  <body class="page">
     <div v-if="editingRideId">
       <EditRide :rideId="editingRideId" @close="closeEditor" />
     </div>
-    <div v-else class="rides">
+    <main v-else class="rides">
       <h1>Twoje dodane przejazdy</h1>
       <div v-if="loading" class="loading">Ładowanie...</div>
       <div v-if="error" class="error">{{ error }}</div>
@@ -50,8 +50,8 @@
           </div>
         </li>
       </ul>
-    </div>
-  </div>
+    </main>
+  </body>
 </template>
 
 <script>

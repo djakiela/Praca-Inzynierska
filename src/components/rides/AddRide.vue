@@ -633,6 +633,7 @@ form {
   align-items: flex-start;
   gap: 40px;
   width: 100%;
+  margin-bottom: 20px;
 }
 
 .up-content {

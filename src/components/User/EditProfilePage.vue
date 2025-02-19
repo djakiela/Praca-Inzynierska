@@ -1,5 +1,5 @@
 <template>
-  <div class="edit-profile-page">
+  <body class="edit-profile-page">
     <!-- Alert do wpisania aktualnego hasła -->
     <AlertPage3
       v-if="showAlert"
@@ -8,7 +8,7 @@
       @close="handleAlertClose"
     />
 
-    <div class="profile-card">
+    <main class="profile-card">
       <h1>Edytuj Profil</h1>
 
       <!-- Sekcja Avatara -->
@@ -35,7 +35,7 @@
       </section>
 
       <!-- Sekcja Nazwy Użytkownika -->
-      <form @submit.prevent="updateUsername" class="profile-form">
+      <section @submit.prevent="updateUsername" class="profile-form">
         <div class="inputs">
           <label for="username">Nazwa użytkownika:</label>
           <input
@@ -52,10 +52,10 @@
         <button type="submit" class="update-btn">
           Zmień nazwę użytkownika
         </button>
-      </form>
+      </section>
 
       <!-- Sekcja Hasła -->
-      <form @submit.prevent="requestPasswordChange" class="profile-form">
+      <section @submit.prevent="requestPasswordChange" class="profile-form">
         <div class="inputs">
           <label for="newPassword">Nowe Hasło:</label>
           <input
@@ -65,13 +65,13 @@
           />
         </div>
         <button type="submit" class="update-btn">Zmień hasło</button>
-      </form>
+      </section>
 
       <!-- Komunikaty -->
       <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
       <p v-if="successMessage" class="success">{{ successMessage }}</p>
-    </div>
-  </div>
+    </main>
+  </body>
 </template>
 
 <script>
@@ -492,11 +492,13 @@ export default {
 .error {
   color: red;
   font-size: 0.9rem;
+  margin-bottom: 20px;
 }
 
 .success {
   color: green;
   font-size: 0.9rem;
+  margin-bottom: 20px;
 }
 
 label {

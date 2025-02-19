@@ -1,6 +1,6 @@
 <template>
-  <div class="alert-overlay" v-if="visible">
-    <div class="alert-box">
+  <body class="alert-overlay" v-if="visible">
+    <form class="alert-box">
       <p v-html="message"></p>
       <input
         v-if="showInput"
@@ -8,12 +8,12 @@
         v-model="inputValue"
         placeholder="Wpisz aktualne hasło"
       />
-      <div class="alert-buttons">
+      <section class="alert-buttons">
         <button @click="submit" class="ok-btn">OK</button>
         <button @click="close" class="cancel-btn">Anuluj</button>
-      </div>
-    </div>
-  </div>
+      </section>
+    </form>
+  </body>
 </template>
 
 <script>
