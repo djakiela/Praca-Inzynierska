@@ -187,7 +187,9 @@ header {
   background-color: #ffb300;
   color: black;
   cursor: pointer;
-  transition: background-color 0.3s, box-shadow 0.3s;
+  transition:
+    background-color 0.3s,
+    box-shadow 0.3s;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
   font-size: 1.1rem;
 }
@@ -220,6 +222,6 @@ p {
   display: flex;
   align-items: flex-start;
   gap: 1px;
-  margin-left: 100px;
+  margin-left: 300px;
 }
 </style>

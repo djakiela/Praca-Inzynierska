@@ -1,6 +1,6 @@
 <template>
   <body class="page">
-    <form class="ride-list">
+    <main class="ride-list">
       <h1>Lista przejazdów</h1>
 
       <!-- Paginacja na górze -->
@@ -126,7 +126,7 @@
           &gt;
         </button>
       </nav>
-    </form>
+    </main>
   </body>
 </template>
 

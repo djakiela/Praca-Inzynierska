@@ -228,6 +228,7 @@ export default {
   color: white !important;
   outline: none;
   transition: border-color 0.2s ease;
+  margin-bottom: 10px;
 }
 
 .page form input:-webkit-autofill,
