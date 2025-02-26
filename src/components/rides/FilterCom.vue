@@ -57,7 +57,7 @@ export default {
 
 <style scoped>
 .filter-container {
-  background: rgba(34, 34, 34, 0.9);
+  background: rgba(51, 51, 51, 0.95);
   padding: 20px;
   padding-right: 40px;
   border-radius: 12px;

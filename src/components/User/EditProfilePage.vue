@@ -51,6 +51,21 @@
         </button>
       </form>
 
+      <!-- 🆕 Sekcja Numeru Telefonu -->
+      <form @submit.prevent="updatePhoneNumber" class="profile-form">
+        <div class="inputs">
+          <label for="phoneNumber">Numer telefonu:</label>
+          <input
+            type="text"
+            v-model="phonenumber"
+            maxlength="9"
+            @input="validatePhoneNumber"
+            placeholder="Wpisz numer telefonu"
+          />
+        </div>
+        <button type="submit" class="update-btn">Zmień numer telefonu</button>
+      </form>
+
       <!-- Sekcja Hasła -->
       <form @submit.prevent="requestPasswordChange" class="profile-form">
         <div class="inputs">
@@ -106,6 +121,7 @@ export default {
     return {
       email: "",
       username: "",
+      phonenumber: "",
       newPassword: "",
       avatar: null,
       avatarUrl: "",
@@ -343,6 +359,47 @@ export default {
         }
       }
     },
+
+    validatePhoneNumber() {
+      if (!this.phonenumber) {
+        this.phonenumber = "";
+      }
+      this.phonenumber = this.phonenumber.replace(/\D/g, "").slice(0, 9);
+      console.log("📞 Aktualny numer w inpucie:", this.phonenumber);
+    },
+
+    // Aktualizacja numeru telefonu
+    async updatePhoneNumber() {
+      console.log("🟢 Rozpoczęto zmianę numeru telefonu...");
+
+      const auth = getAuth();
+      const user = auth.currentUser;
+      const db = getFirestore();
+
+      if (!user) {
+        this.errorMessage =
+          "Musisz być zalogowany, aby zmienić numer telefonu.";
+        console.error("🔴 Błąd: Brak zalogowanego użytkownika!");
+        return;
+      }
+
+      if (this.phonenumber.trim() === "" || this.phonenumber.length !== 9) {
+        this.errorMessage = "Numer telefonu musi składać się z 9 cyfr.";
+        console.error("🔴 Błąd: Niepoprawny numer telefonu!");
+        return;
+      }
+
+      try {
+        const userDocRef = doc(db, "users", user.uid);
+        await updateDoc(userDocRef, { phonenumber: this.phonenumber });
+
+        console.log("✅ Numer telefonu zaktualizowany:", this.phonenumber);
+        this.successMessage = "Numer telefonu został zmieniony!";
+      } catch (error) {
+        console.error("❌ Błąd zmiany numeru telefonu:", error);
+        this.errorMessage = "Błąd podczas zmiany numeru: " + error.message;
+      }
+    },
   },
 
   async mounted() {
@@ -360,6 +417,7 @@ export default {
         const userData = userDoc.data();
         this.username = userData.username || "";
         this.avatarUrl = userData.avatarUrl || this.defaultAvatarUrl;
+        this.phonenumber = userData.phonenumber || "";
 
         console.log("Dane użytkownika załadowane:", userData);
       }
