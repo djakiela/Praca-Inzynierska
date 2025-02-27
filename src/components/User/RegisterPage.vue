@@ -1,8 +1,8 @@
 <template>
   <body class="page">
-    <form class="content">
+    <div class="content">
       <h1>Rejestracja</h1>
-      <div @submit.prevent="registerWithEmail">
+      <form @submit.prevent="registerWithEmail">
         <section>
           <label for="username">Nazwa użytkownika:</label>
           <input type="text" v-model="username" required />
@@ -34,7 +34,7 @@
           >
         </section>
         <button type="submit" class="r-button">Zarejestruj</button>
-      </div>
+      </form>
       <button @click="registerWithGoogle" class="g-button">
         Zarejestruj się przez Google
       </button>
@@ -48,7 +48,7 @@
         :message="alertMessage"
         @close="handleAlertClose"
       />
-    </form>
+    </div>
   </body>
 </template>
 

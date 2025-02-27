@@ -9,7 +9,7 @@
         id="search"
         type="text"
         v-model="filters.search"
-        placeholder="Wpisz frazę"
+        placeholder="Wpisz miejscowość"
       />
     </div>
 
@@ -17,18 +17,6 @@
     <div class="filter-group">
       <label for="date">Data:</label>
       <input id="date" type="date" v-model="filters.date" />
-    </div>
-
-    <!-- Filtr miejsc -->
-    <div class="filter-group">
-      <label for="seats">Liczba miejsc:</label>
-      <input
-        id="seats"
-        type="number"
-        v-model="filters.seats"
-        min="0"
-        placeholder="Wybierz ilość miejsc"
-      />
     </div>
 
     <button @click="applyFilters" class="filter-btn">Filtruj</button>
@@ -43,7 +31,6 @@ export default {
       filters: {
         search: "",
         date: "",
-        seats: "",
       },
     };
   },
