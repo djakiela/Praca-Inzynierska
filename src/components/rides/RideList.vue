@@ -663,7 +663,7 @@ export default {
 .ride-list {
   font-family: Arial, Helvetica, sans-serif;
   max-width: 1000px;
-  width: 100%;
+  width: 700px;
   background: rgba(51, 51, 51, 0.95);
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
