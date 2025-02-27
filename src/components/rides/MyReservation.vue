@@ -11,6 +11,17 @@
         <h1>Twoje rezerwacje</h1>
         <li v-for="(ride, index) in rides" :key="ride.id" class="conent">
           <h2>Przejazd: {{ ride.departure }} → {{ ride.destination }}</h2>
+          <section class="user-info">
+            <img
+              :src="userAvatars[ride.userId] || defaultAvatar"
+              alt="Avatar"
+              class="avatar"
+            />
+            <p>
+              <strong>Dodano przez:</strong>
+              {{ userNames[ride.userId] || "Nieznany użytkownik" }}
+            </p>
+          </section>
           <p><strong>Data:</strong> {{ formatDate(ride.dateTime) }}</p>
           <p>
             <strong>Zarezerwowane miejsca:</strong>
@@ -64,6 +75,11 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import {
+  getStorage,
+  ref as storageRef,
+  getDownloadURL,
+} from "firebase/storage";
 
 export default {
   name: "MyReservation",
@@ -76,6 +92,10 @@ export default {
     const error = ref(null);
     const userPhones = ref({});
     const mapVisibility = ref([]);
+    const userAvatars = ref({});
+    const userNames = ref({});
+    const defaultAvatar = "/avatar.png";
+    const storage = getStorage();
 
     // Pobierz rezerwacje użytkownika
     const fetchUserReservations = async () => {
@@ -115,24 +135,56 @@ export default {
         // Inicjalizacja widoczności map dla każdego przejazdu
         mapVisibility.value = new Array(rides.value.length).fill(false);
 
-        // Pobierz dane użytkowników, w tym numery telefonów
-        const userPromises = Array.from(userIds).map((userId) =>
-          getDoc(doc(db, "users", userId)),
-        );
-        const userDocs = await Promise.all(userPromises);
-
-        userDocs.forEach((userDoc) => {
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            userPhones.value[userDoc.id] =
-              userData.phonenumber || "Brak numeru telefonu";
-          }
+        // Zbierz wszystkie ID użytkowników z przejazdów
+        rides.value.forEach((ride) => {
+          if (ride.userId) userIds.add(ride.userId);
         });
+
+        // Pobierz dane użytkowników, w tym avatary i nazwy
+        await fetchUserDetailsAndAvatars(Array.from(userIds));
       } catch (err) {
         error.value = "Nie udało się pobrać rezerwacji: " + err.message;
       } finally {
         loading.value = false;
       }
+    };
+
+    // Nowa funkcja do pobierania szczegółów użytkowników i avatarów
+    const fetchUserDetailsAndAvatars = async (userIds) => {
+      const userPromises = userIds.map(async (userId) => {
+        try {
+          const userDoc = await getDoc(doc(db, "users", userId));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            userNames.value[userId] =
+              userData.username || "Nieznany użytkownik";
+            userPhones.value[userId] =
+              userData.phonenumber || "Brak numeru telefonu";
+
+            // Pobieramy avatar użytkownika z Firebase Storage
+            const avatarPath = `imgu/${userId}.jpg`; // Avatar w katalogu `imgu/`
+            const avatarRef = storageRef(storage, avatarPath);
+
+            try {
+              const avatarUrl = await getDownloadURL(avatarRef);
+              userAvatars.value[userId] = avatarUrl;
+            } catch {
+              userAvatars.value[userId] = defaultAvatar; // Jeśli avatar nie istnieje, używamy domyślnego
+            }
+          } else {
+            userNames.value[userId] = "Nieznany użytkownik";
+            userAvatars.value[userId] = defaultAvatar;
+            userPhones.value[userId] = "Brak numeru telefonu";
+          }
+        } catch (err) {
+          console.error("Błąd podczas pobierania danych użytkownika:", err);
+          userNames.value[userId] = "Nieznany użytkownik";
+          userAvatars.value[userId] = defaultAvatar;
+          userPhones.value[userId] = "Brak numeru telefonu";
+        }
+      });
+
+      await Promise.all(userPromises);
     };
 
     // Odwołaj rezerwację
@@ -251,6 +303,10 @@ export default {
       visualizeRoute,
       cancelReservation,
       formatDate,
+      userNames,
+      userAvatars,
+      defaultAvatar,
+      currentUser,
     };
   },
 };
@@ -410,5 +466,18 @@ section {
   margin-top: 10px;
   border: 1px solid #333;
   border-radius: 5px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid #ffb300;
 }
 </style>
