@@ -1,138 +1,145 @@
 <template>
   <body class="page">
-    <main class="ride-list">
-      <h1>Lista przejazdów</h1>
+    <div class="container">
+      <!-- Komponent filtrowania -->
+      <FilerCom @filter-changed="handleFilterChange" />
 
-      <!-- Paginacja na górze -->
-      <nav v-if="totalPages > 1" class="pagination">
-        <button @click="prevPage" :disabled="currentPage === 1">&lt;</button>
-        <button
-          v-for="page in totalPages"
-          :key="page"
-          :class="{ active: page === currentPage }"
-          @click="setPage(page)"
-        >
-          {{ page }}
-        </button>
-        <button @click="nextPage" :disabled="currentPage === totalPages">
-          &gt;
-        </button>
-      </nav>
+      <main class="ride-list">
+        <h1>Lista przejazdów</h1>
 
-      <div v-if="loading" class="loading">Ładowanie...</div>
-      <div v-if="error" class="error">{{ error }}</div>
-      <div v-if="paginatedRides.length === 0 && !loading" class="no-rides">
-        Brak przejazdów do wyświetlenia.
-      </div>
-
-      <div
-        v-for="(ride, index) in paginatedRides"
-        :key="ride.id"
-        class="ride-item"
-      >
-        <h2>Przejazd: {{ ride.departure }} → {{ ride.destination }}</h2>
-
-        <section class="user-info">
-          <img
-            :src="userAvatars[ride.userId] || defaultAvatar"
-            alt="Avatar"
-            class="avatar"
-          />
-          <p>
-            <strong>Dodano przez:</strong>
-            {{ userNames[ride.userId] || "Nieznany użytkownik" }}
-          </p>
-        </section>
-
-        <p><strong>Data:</strong> {{ formatDate(ride.dateTime) }}</p>
-        <p><strong>Miejsca:</strong> {{ ride.seats }}</p>
-
-        <section>
-          <template v-if="ride.userId === currentUser?.uid">
-            <p class="info-message">
-              Ten przejazd należy do Ciebie. Możesz go sprawdzić w sekcji
-              <strong>Moje przejazdy</strong>.
-            </p>
-            <button @click="goToMyRides" class="my-rides-btn">
-              Przejdź do moich przejazdów
-            </button>
-          </template>
-
-          <template v-else>
-            <div v-if="!reservationStatus[index]" class="reservation-box">
-              <label>Liczba miejsc do rezerwacji:</label>
-              <input
-                class="seats-input"
-                type="number"
-                v-model.number="reservationSeats[ride.id]"
-                :max="ride.seats"
-                :min="1"
-                @input="validateSeats(ride.id, ride.seats)"
-              />
-              <p v-if="validationErrors[index]" class="error">
-                {{ validationErrors[index] }}
-              </p>
-            </div>
-
-            <button
-              @click="
-                reservationStatus[ride.id]
-                  ? cancelReservation(ride.id)
-                  : makeReservation(ride.id)
-              "
-            >
-              {{
-                reservationStatus[ride.id] ? "Odwołaj rezerwację" : "Zarezerwuj"
-              }}
-            </button>
-          </template>
-        </section>
-
-        <section class="details" v-if="reservationStatus[ride.id]">
-          <p>
-            <strong>Numer telefonu:</strong>
-            {{ userPhones[ride.userId] || "Brak numeru telefonu" }}
-          </p>
-          <p>
-            <strong>Dokładny adres wyjazdu:</strong>
-            {{ ride.exactDepartureAddress }}
-          </p>
-          <p>
-            <strong>Dokładny adres dojazdu:</strong>
-            {{ ride.exactDestinationAddress }}
-          </p>
-          <button @click="toggleMap(ride.id)">
-            {{ mapVisibility[ride.id] ? "Ukryj mapę" : "Wizualizacja trasy" }}
+        <!-- Paginacja na górze -->
+        <nav v-if="totalPages > 1" class="pagination">
+          <button @click="prevPage" :disabled="currentPage === 1">&lt;</button>
+          <button
+            v-for="page in totalPages"
+            :key="page"
+            :class="{ active: page === currentPage }"
+            @click="setPage(page)"
+          >
+            {{ page }}
           </button>
-        </section>
-        <div
-          v-if="mapVisibility[ride.id]"
-          :id="'map-container-' + ride.id"
-          class="map-container"
-        ></div>
-      </div>
+          <button @click="nextPage" :disabled="currentPage === totalPages">
+            &gt;
+          </button>
+        </nav>
 
-      <nav v-if="totalPages > 1" class="pagination">
-        <button @click="prevPage" :disabled="currentPage === 1">&lt;</button>
-        <button
-          v-for="page in totalPages"
-          :key="page"
-          :class="{ active: page === currentPage }"
-          @click="setPage(page)"
+        <div v-if="loading" class="loading">Ładowanie...</div>
+        <div v-if="error" class="error">{{ error }}</div>
+        <div v-if="paginatedRides.length === 0 && !loading" class="no-rides">
+          Brak przejazdów spełniających kryteria.
+        </div>
+
+        <div
+          v-for="(ride, index) in paginatedRides"
+          :key="ride.id"
+          class="ride-item"
         >
-          {{ page }}
-        </button>
-        <button @click="nextPage" :disabled="currentPage === totalPages">
-          &gt;
-        </button>
-      </nav>
-    </main>
+          <h2>Przejazd: {{ ride.departure }} → {{ ride.destination }}</h2>
+
+          <section class="user-info">
+            <img
+              :src="userAvatars[ride.userId] || defaultAvatar"
+              alt="Avatar"
+              class="avatar"
+            />
+            <p>
+              <strong>Dodano przez:</strong>
+              {{ userNames[ride.userId] || "Nieznany użytkownik" }}
+            </p>
+          </section>
+
+          <p><strong>Data:</strong> {{ formatDate(ride.dateTime) }}</p>
+          <p><strong>Miejsca:</strong> {{ ride.seats }}</p>
+
+          <section>
+            <template v-if="ride.userId === currentUser?.uid">
+              <p class="info-message">
+                Ten przejazd należy do Ciebie. Możesz go sprawdzić w sekcji
+                <strong>Moje przejazdy</strong>.
+              </p>
+              <button @click="goToMyRides" class="my-rides-btn">
+                Przejdź do moich przejazdów
+              </button>
+            </template>
+
+            <template v-else>
+              <div v-if="!reservationStatus[ride.id]" class="reservation-box">
+                <label>Liczba miejsc do rezerwacji:</label>
+                <input
+                  class="seats-input"
+                  type="number"
+                  v-model.number="reservationSeats[ride.id]"
+                  :max="ride.seats"
+                  :min="1"
+                  @input="validateSeats(ride.id, ride.seats)"
+                />
+                <p v-if="validationErrors[index]" class="error">
+                  {{ validationErrors[index] }}
+                </p>
+              </div>
+
+              <button
+                @click="
+                  reservationStatus[ride.id]
+                    ? cancelReservation(ride.id)
+                    : makeReservation(ride.id)
+                "
+              >
+                {{
+                  reservationStatus[ride.id]
+                    ? "Odwołaj rezerwację"
+                    : "Zarezerwuj"
+                }}
+              </button>
+            </template>
+          </section>
+
+          <section class="details" v-if="reservationStatus[ride.id]">
+            <p>
+              <strong>Numer telefonu:</strong>
+              {{ userPhones[ride.userId] || "Brak numeru telefonu" }}
+            </p>
+            <p>
+              <strong>Dokładny adres wyjazdu:</strong>
+              {{ ride.exactDepartureAddress }}
+            </p>
+            <p>
+              <strong>Dokładny adres dojazdu:</strong>
+              {{ ride.exactDestinationAddress }}
+            </p>
+            <button @click="toggleMap(ride.id)">
+              {{ mapVisibility[ride.id] ? "Ukryj mapę" : "Wizualizacja trasy" }}
+            </button>
+          </section>
+          <div
+            v-if="mapVisibility[ride.id]"
+            :id="'map-container-' + ride.id"
+            class="map-container"
+          ></div>
+        </div>
+
+        <nav v-if="totalPages > 1" class="pagination">
+          <button @click="prevPage" :disabled="currentPage === 1">&lt;</button>
+          <button
+            v-for="page in totalPages"
+            :key="page"
+            :class="{ active: page === currentPage }"
+            @click="setPage(page)"
+          >
+            {{ page }}
+          </button>
+          <button @click="nextPage" :disabled="currentPage === totalPages">
+            &gt;
+          </button>
+        </nav>
+      </main>
+    </div>
   </body>
 </template>
 
 <script>
 /* global google */
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { db } from "@/firebaseConfig";
 import {
@@ -153,14 +160,19 @@ import {
   ref as storageRef,
   getDownloadURL,
 } from "firebase/storage";
+import FilerCom from "@/components/rides/FilterCom.vue";
 
 export default {
   name: "RideList",
+  components: {
+    FilerCom,
+  },
 
   setup() {
     const auth = getAuth();
     const currentUser = auth.currentUser;
-    const rides = ref([]);
+    const allRides = ref([]); // Wszystkie pobrane przejazdy
+    const filteredRides = ref([]); // Przefiltrowane przejazdy
     const userNames = ref({});
     const userAvatars = ref({});
     const reservationSeats = ref([]);
@@ -175,6 +187,62 @@ export default {
     const router = useRouter();
     const defaultAvatar = "/avatar.png";
     const storage = getStorage();
+    const activeFilters = ref({
+      departure: "",
+      destination: "",
+      departureDate: "",
+    });
+
+    // Funkcja do filtrowania przejazdów
+    const applyFilters = () => {
+      filteredRides.value = allRides.value.filter((ride) => {
+        // Filtrowanie po miejscu wyjazdu
+        if (
+          activeFilters.value.departure &&
+          !ride.departure
+            .toLowerCase()
+            .includes(activeFilters.value.departure.toLowerCase())
+        ) {
+          return false;
+        }
+
+        // Filtrowanie po miejscu docelowym
+        if (
+          activeFilters.value.destination &&
+          !ride.destination
+            .toLowerCase()
+            .includes(activeFilters.value.destination.toLowerCase())
+        ) {
+          return false;
+        }
+
+        // Filtrowanie po dacie wyjazdu
+        if (activeFilters.value.departureDate) {
+          const rideDate = new Date(ride.dateTime);
+          const selectedDate = new Date(activeFilters.value.departureDate);
+
+          // Porównujemy tylko rok, miesiąc i dzień
+          if (
+            rideDate.getFullYear() !== selectedDate.getFullYear() ||
+            rideDate.getMonth() !== selectedDate.getMonth() ||
+            rideDate.getDate() !== selectedDate.getDate()
+          ) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+
+      // Reset paginacji po zmianie filtrów
+      currentPage.value = 1;
+    };
+
+    // Obsługa zmiany filtrów z komponentu FilerCom
+    const handleFilterChange = (filters) => {
+      activeFilters.value = filters;
+      applyFilters();
+    };
 
     const visualizeRoute = async (rideId) => {
       try {
@@ -249,14 +317,16 @@ export default {
     };
 
     const totalPages = computed(() =>
-      Math.ceil(rides.value.length / itemsPerPage),
+      Math.ceil(filteredRides.value.length / itemsPerPage),
     );
 
     const paginatedRides = computed(() => {
-      const filteredRides = rides.value.filter((ride) => ride.seats > 0);
+      const ridesWithSeats = filteredRides.value.filter(
+        (ride) => ride.seats > 0,
+      );
       const start = (currentPage.value - 1) * itemsPerPage;
       const end = start + itemsPerPage;
-      return filteredRides.slice(start, end);
+      return ridesWithSeats.slice(start, end);
     });
 
     const nextPage = () => {
@@ -277,12 +347,15 @@ export default {
         const q = query(collection(db, "rides"), orderBy("dateTime", "asc"));
         const querySnapshot = await getDocs(q);
 
-        rides.value = querySnapshot.docs
+        allRides.value = querySnapshot.docs
           .map((doc) => ({ id: doc.id, ...doc.data() }))
           .filter((ride) => ride.seats > 0);
 
+        // Początkowo wyświetlamy wszystkie przejazdy
+        filteredRides.value = [...allRides.value];
+
         // Inicjalizacja stanu dla rezerwacji
-        for (const ride of rides.value) {
+        for (const ride of allRides.value) {
           if (!(ride.id in reservationSeats.value)) {
             reservationSeats.value[ride.id] = 1;
           }
@@ -290,7 +363,7 @@ export default {
           mapVisibility.value[ride.id] = false;
         }
 
-        const userIds = [...new Set(rides.value.map((ride) => ride.userId))];
+        const userIds = [...new Set(allRides.value.map((ride) => ride.userId))];
         await fetchUserNamesAndAvatars(userIds);
         if (currentUser) await fetchUserReservations();
       } catch (err) {
@@ -381,17 +454,27 @@ export default {
           seats: reservedSeats,
         });
 
-        const rideIndex = rides.value.findIndex((r) => r.id === rideId);
-        if (rideIndex !== -1) {
-          rides.value[rideIndex].seats -= reservedSeats;
-        }
+        // Zaktualizuj dane w obu tablicach: allRides i filteredRides
+        const updateRideSeats = (ridesArray, id, seatsToRemove) => {
+          const index = ridesArray.findIndex((r) => r.id === id);
+          if (index !== -1) {
+            ridesArray[index].seats -= seatsToRemove;
+            // Jeśli po rezerwacji nie ma już miejsc, usuń przejazd z widoku
+            if (ridesArray[index].seats === 0) {
+              return ridesArray.filter((r) => r.id !== id);
+            }
+          }
+          return ridesArray;
+        };
+
+        allRides.value = updateRideSeats(allRides.value, rideId, reservedSeats);
+        filteredRides.value = updateRideSeats(
+          filteredRides.value,
+          rideId,
+          reservedSeats,
+        );
 
         reservationStatus.value[rideId] = true;
-
-        if (rides.value[rideIndex].seats === 0) {
-          rides.value = rides.value.filter((r) => r.id !== rideId);
-          delete reservationStatus.value[rideId];
-        }
       } catch (err) {
         console.error("Błąd podczas rezerwacji:", err);
       }
@@ -417,8 +500,68 @@ export default {
 
             await deleteDoc(reservationRef);
 
-            if (rides.value.find((r) => r.id === rideId)) {
-              rides.value.find((r) => r.id === rideId).seats += reservedSeats;
+            // Zaktualizuj dane w obu tablicach: allRides i filteredRides
+            const updateRide = (ride) => {
+              if (ride.id === rideId) {
+                ride.seats += reservedSeats;
+              }
+              return ride;
+            };
+
+            allRides.value = allRides.value.map(updateRide);
+            filteredRides.value = filteredRides.value.map(updateRide);
+
+            // Może być potrzeba dodania przejazdu z powrotem, jeśli był usunięty
+            if (!filteredRides.value.some((r) => r.id === rideId)) {
+              const rideToAdd = allRides.value.find((r) => r.id === rideId);
+              if (rideToAdd) {
+                // Sprawdź, czy przejazd pasuje do aktualnych filtrów
+                let matchesFilters = true;
+
+                // Sprawdź filtr miejsca wyjazdu
+                if (
+                  activeFilters.value.departure &&
+                  !rideToAdd.departure
+                    .toLowerCase()
+                    .includes(activeFilters.value.departure.toLowerCase())
+                ) {
+                  matchesFilters = false;
+                }
+
+                // Sprawdź filtr miejsca docelowego
+                if (
+                  activeFilters.value.destination &&
+                  !rideToAdd.destination
+                    .toLowerCase()
+                    .includes(activeFilters.value.destination.toLowerCase())
+                ) {
+                  matchesFilters = false;
+                }
+
+                // Sprawdź filtr daty wyjazdu
+                if (activeFilters.value.departureDate) {
+                  const rideDate = new Date(rideToAdd.dateTime);
+                  const selectedDate = new Date(
+                    activeFilters.value.departureDate,
+                  );
+
+                  if (
+                    rideDate.getFullYear() !== selectedDate.getFullYear() ||
+                    rideDate.getMonth() !== selectedDate.getMonth() ||
+                    rideDate.getDate() !== selectedDate.getDate()
+                  ) {
+                    matchesFilters = false;
+                  }
+                }
+
+                if (matchesFilters) {
+                  filteredRides.value.push(rideToAdd);
+                  // Sortuj po dacie
+                  filteredRides.value.sort(
+                    (a, b) => new Date(a.dateTime) - new Date(b.dateTime),
+                  );
+                }
+              }
             }
 
             reservationStatus.value[rideId] = false;
@@ -457,10 +600,18 @@ export default {
       router.push("/my-rides");
     };
 
+    // Reset strony przy zmianie filtrów
+    watch(filteredRides, () => {
+      if (currentPage.value > totalPages.value && totalPages.value > 0) {
+        currentPage.value = totalPages.value;
+      }
+    });
+
     onMounted(fetchRides);
 
     return {
-      rides,
+      allRides,
+      filteredRides,
       paginatedRides,
       userNames,
       reservationSeats,
@@ -474,6 +625,7 @@ export default {
       totalPages,
       defaultAvatar,
       userAvatars,
+      currentUser,
       goToMyRides,
       nextPage,
       prevPage,
@@ -484,6 +636,7 @@ export default {
       validateSeats,
       visualizeRoute,
       toggleMap,
+      handleFilterChange,
     };
   },
 };
@@ -495,6 +648,16 @@ export default {
   color: white;
   display: flex;
   justify-content: center;
+}
+
+.container {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
 .ride-list {

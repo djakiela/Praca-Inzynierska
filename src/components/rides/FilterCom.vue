@@ -2,40 +2,61 @@
   <div class="filter-container">
     <h2>Filtruj</h2>
 
-    <!-- Pole wyszukiwania -->
     <div class="filter-group">
-      <label for="search">Wyszukaj:</label>
+      <label for="departure">Miejsce wyjazdu:</label>
       <input
-        id="search"
+        id="departure"
         type="text"
-        v-model="filters.search"
-        placeholder="Wpisz miejscowość"
+        v-model="filters.departure"
+        placeholder="Wpisz miejsce wyjazdu"
       />
     </div>
 
-    <!-- Filtr daty -->
     <div class="filter-group">
-      <label for="date">Data:</label>
-      <input id="date" type="date" v-model="filters.date" />
+      <label for="destination">Miejsce docelowe:</label>
+      <input
+        id="destination"
+        type="text"
+        v-model="filters.destination"
+        placeholder="Wpisz miejsce docelowe"
+      />
+    </div>
+
+    <div class="filter-group">
+      <label for="departureDate">Data wyjazdu:</label>
+      <input id="departureDate" type="date" v-model="filters.departureDate" />
     </div>
 
     <button @click="applyFilters" class="filter-btn">Filtruj</button>
+    <button @click="resetFilters" class="filter-btn">Resetuj</button>
   </div>
 </template>
 
 <script>
 export default {
-  name: "FilterCom",
+  name: "FilerCom",
   data() {
     return {
       filters: {
-        search: "",
-        date: "",
+        departure: "",
+        destination: "",
+        departureDate: "",
       },
     };
   },
   methods: {
     applyFilters() {
+      this.$emit("filter-changed", { ...this.filters });
+    },
+    resetFilters() {
+      // Resetowanie filtrów
+      this.filters = {
+        departure: "",
+        destination: "",
+        departureDate: "",
+      };
+
+      // Emit zdarzeń pustych
       this.$emit("filter-changed", { ...this.filters });
     },
   },
@@ -49,17 +70,17 @@ export default {
   padding-right: 40px;
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  margin-left: 50px;
   margin-right: 1px;
   font-family: Arial, Helvetica, sans-serif;
   color: white;
   width: 280px;
+  height: 450px;
 }
 
 h2 {
   text-align: center;
-  color: #ffb300;
-  text-shadow: 0px 0px 8px rgba(255, 179, 0, 0.8);
+  color: white;
+  text-shadow: 0px 0px 10px rgba(0, 0, 0, 0.8);
 }
 
 .filter-group {

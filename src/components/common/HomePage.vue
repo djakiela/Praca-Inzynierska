@@ -72,7 +72,6 @@
       </header>
       <main>
         <section id="rides-list" class="ride-list">
-          <FilterCom />
           <RideList />
         </section>
       </main>
@@ -83,13 +82,11 @@
 <script>
 import { onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
-import FilterCom from "@/components/rides/FilterCom.vue";
 import RideList from "@/components/rides/RideList.vue";
 
 export default {
   name: "HomePage",
   components: {
-    FilterCom,
     RideList,
   },
   data() {
