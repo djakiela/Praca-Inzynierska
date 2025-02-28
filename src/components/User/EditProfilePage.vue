@@ -365,7 +365,7 @@ export default {
         this.phonenumber = "";
       }
       this.phonenumber = this.phonenumber.replace(/\D/g, "").slice(0, 9);
-      console.log("📞 Aktualny numer w inpucie:", this.phonenumber);
+      console.log("Aktualny numer w inpucie:", this.phonenumber);
     },
 
     // Aktualizacja numeru telefonu

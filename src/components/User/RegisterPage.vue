@@ -83,70 +83,108 @@ export default {
     },
 
     async registerWithEmail() {
+      console.log("🟢 Rozpoczęto proces rejestracji...");
+
       if (!this.termsAccepted) {
         this.errorMessage = "Musisz zaakceptować regulamin.";
+        console.error("🔴 Błąd: Użytkownik nie zaakceptował regulaminu!");
         return;
       }
+
+      console.log("Podany email:", this.email);
+      console.log("Podana nazwa użytkownika:", this.username);
+      console.log("Podany numer telefonu:", this.phonenumber);
+
       const auth = getAuth();
       const db = getFirestore();
+
       try {
+        console.log("Tworzenie nowego użytkownika...");
         const userCredential = await createUserWithEmailAndPassword(
           auth,
           this.email,
           this.password,
         );
         const user = userCredential.user;
+
+        console.log("Użytkownik został pomyślnie utworzony!");
+        console.log("ID użytkownika:", user.uid);
+
+        console.log("Zapisywanie danych użytkownika w Firestore...");
         await setDoc(doc(db, "users", user.uid), {
           userId: user.uid,
           username: this.username,
           email: this.email,
           phonenumber: this.phonenumber,
         });
+
+        console.log("Przypisywanie roli użytkownika...");
         await setDoc(doc(db, "roles", user.uid), {
           role: "user",
         });
 
-        console.log("User registered:", user);
+        console.log("🟢 Rejestracja zakończona sukcesem!");
         this.alertMessage = "Rejestracja zakończona sukcesem!";
         this.showAlert = true;
         this.errorMessage = "";
       } catch (error) {
+        console.error("❌ Błąd podczas rejestracji:", error.code);
         this.errorMessage =
           "Błąd podczas rejestracji: " +
           this.translateFirebaseError(error.code);
       }
     },
+
     async registerWithGoogle() {
+      console.log("🟢 Rozpoczęto rejestrację przez Google...");
+
       const provider = new GoogleAuthProvider();
       const auth = getAuth();
       const db = getFirestore();
+
       try {
+        console.log("🔄 Autoryzacja przez Google...");
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
+
+        console.log("✅ Użytkownik zalogowany przez Google!");
+        console.log("🆔 ID użytkownika:", user.uid);
+        console.log("👤 Nazwa użytkownika:", user.displayName);
+        console.log("📩 Email użytkownika:", user.email);
+
+        console.log("🗄️ Zapisywanie danych użytkownika w Firestore...");
         await setDoc(doc(db, "users", user.uid), {
           userId: user.uid,
           username: user.displayName,
           email: user.email,
           phonenumber: "",
         });
+
+        console.log("🔐 Przypisywanie roli użytkownika...");
         await setDoc(doc(db, "roles", user.uid), {
           role: "user",
         });
 
-        console.log("User registered with Google:", user);
+        console.log("✅ Rejestracja przez Google zakończona sukcesem!");
         this.alertMessage = "Rejestracja zakończona sukcesem!";
         this.showAlert = true;
         this.errorMessage = "";
       } catch (error) {
+        console.error("❌ Błąd podczas rejestracji przez Google:", error.code);
         this.errorMessage =
           "Błąd podczas rejestracji przez Google: " +
           this.translateFirebaseError(error.code);
       }
     },
+
     handleAlertClose() {
+      console.log(
+        "ℹ️ Zamknięcie alertu rejestracji. Przekierowanie na stronę główną...",
+      );
       this.showAlert = false;
       this.$router.push("/");
     },
+
     translateFirebaseError(code) {
       switch (code) {
         case "auth/email-already-in-use":

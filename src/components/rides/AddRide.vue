@@ -172,6 +172,7 @@ export default {
 
               if (city) {
                 departure.value = city;
+                console.log("Miejscowość wyjazdu:", city);
               }
             }
           });
@@ -186,6 +187,7 @@ export default {
 
               if (city) {
                 destination.value = city;
+                console.log("Miejscowość docelowa:", city);
               }
             }
           });
@@ -387,6 +389,14 @@ export default {
           console.error("Użytkownik musi być zalogowany, aby dodać przejazd.");
           return;
         }
+        console.log("Tworzenie nowego przejazdu...");
+        console.log("Miejscowość wyjazdu:", departure.value);
+        console.log("Miejscowość docelowa:", destination.value);
+        console.log("Dokładny adres wyjazdu:", exactDepartureAddress.value);
+        console.log("Dokładny adres docelowy:", exactDestinationAddress.value);
+        console.log("Data i godzina przejazdu:", dateTime.value);
+        console.log("Liczba miejsc:", seats.value);
+
         const rideData = {
           rideId: `${user.uid}_${Date.now()}`,
           userId: user.uid,
